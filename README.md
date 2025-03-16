@@ -1,35 +1,37 @@
 # VAMA - web
-
-Install dependencies:
-- [traefik environment](https://github.com/AutomaticCraftingTable/traefik-environment)
-- install just 
+Frontendowa część projektu VAMA
+## Konfiguracja aplikacji
+### Instalacja zależności:
+- Skonfiguruj [środowisko traefik](https://github.com/AutomaticCraftingTable/traefik-environment)
+- Zainstaluj `just`
+#### Instalacja `just` w systemie z menedżerem pakietów snap:
 ```sh
-sudo apt install just
+sudo snap install just --classic
 ```
-
-In order to run the application, initializie the project:
+#### Instalacja `just` w systemie z menedżerem pakietów nix:
+```sh
+nix-shell -p "just"
+```
+### Inicjalizacja projektu:
 ```sh
 cp .env.example .env
 just init
 ```
-
-To stop the container:
+## Komendy
+#### Aby zatrzymać kontener:
 ```sh
 just stop
 ```
-
-If you have initialized the project before and just want to start the container:
+#### Jeśli już zainicjalizowałeś projekt i chcesz tylko uruchomić kontener:
 ```sh
 just start
 ```
-
-To execute a command using container's shell:
+#### Aby wykonać komendę używając powłoki kontenera:
 ```sh
-just exec "your command"
+just exec "twoja komenda"
 ```
-Check the [justfile](justfile) to see available wrappers
-
-To open container's shell:
+Sprawdź [justfile](justfile), aby zobaczyć dostępne wrappery dla tej komendy
+#### Aby otworzyć powłokę kontenera:
 ```sh
 just dsh
 ```
