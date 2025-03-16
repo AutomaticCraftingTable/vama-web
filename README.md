@@ -9,7 +9,7 @@ sudo apt install just
 
 In order to run the application, initializie the project:
 ```sh
-cp .env.exampe .env
+cp .env.example .env
 just init
 ```
 

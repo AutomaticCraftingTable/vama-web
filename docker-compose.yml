@@ -7,7 +7,7 @@ networks:
 services:
     app:
         image: node:22-bullseye-slim
-        command: sh -c "npm run dev"
+        command: sh -c "npm install && npm run dev"
         labels:
             - "traefik.enable=true"
             - "traefik.http.routers.vama-web-http-router.rule=Host(`${APP_URL:-vama-web.localhost}`)"

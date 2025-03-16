@@ -8,7 +8,6 @@ dsh:
 
 init:
     @docker compose up --build --remove-orphans -d
-    @just install
     @just start
 
 start:
