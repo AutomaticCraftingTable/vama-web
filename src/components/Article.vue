@@ -13,7 +13,7 @@ import { ref } from 'vue'
       </div>
     </div>
     <div>
-      <p class="text-gray-500">Naprawiam UI duolingo</p>
+      <p class="text-gray-500">Naprawiam UI duolin  go</p>
     </div>
   </div>
 </template>
