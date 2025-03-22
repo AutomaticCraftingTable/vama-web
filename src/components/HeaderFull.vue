@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref} from 'vue'
+import { ref } from 'vue'
 
 defineProps<{
   msg: string
@@ -8,19 +8,20 @@ defineProps<{
 const isLoggedIn = ref(false)
 const searchQuery = ref('')
 </script>
+
 <template>
-  <div class="full-page-container light-background">
-    <header class="header">
-      <div class="header-container">
-        <div class="logo">
+  <div class="w-full flex flex-col bg-gray-50">
+    <header class="w-full py-2.5">
+      <div class="flex items-center justify-between w-full px-5">
+        <div class="flex items-center">
           <a href="/">
-            <div class="logo-v">V</div>
+            <div class="w-10 h-10 flex items-center justify-center font-bold text-2xl">V</div>
           </a>
         </div>
 
-        <div class="search-container">
-          <div class="search-box light-secondary">
-            <span class="search-icon">
+        <div class="flex-grow max-w-lg mx-5">
+          <div class="flex items-center bg-gray-200 rounded-full px-4 py-2">
+            <span class="mr-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="11" cy="11" r="8"></circle>
@@ -29,110 +30,22 @@ const searchQuery = ref('')
             </span>
             <input
                 type="text"
-                placeholder="Search"
+                placeholder="Szukaj..."
                 v-model="searchQuery"
-                class="light-text"
+                class="border-none bg-transparent w-full outline-none text-base text-gray-800"
             />
           </div>
         </div>
 
-        <div class="auth-buttons">
-          <button class="login-button light-secondary light-text">Log in</button>
-          <button class="signup-button text-red">Sign up</button>
+        <div class="flex gap-2.5">
+          <button class="px-5 py-2 rounded-full border-none cursor-pointer font-medium bg-gray-200 text-gray-800">
+            Zaloguj się
+          </button>
+          <button class="px-5 py-2 rounded-full border-none cursor-pointer font-medium">
+            Zajerestuj się
+          </button>
         </div>
       </div>
     </header>
   </div>
 </template>
-
-<style scoped>
-.full-page-container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.header {
-  width: 100%;
-  padding: 10px 0;
-}
-
-.header-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 0 20px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-}
-
-.logo-v {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 24px;
-}
-
-.search-container {
-  flex-grow: 1;
-  max-width: 500px;
-  margin: 0 20px;
-}
-
-.search-box {
-  display: flex;
-  align-items: center;
-  border-radius: 20px;
-  padding: 8px 16px;
-}
-
-.search-icon {
-  margin-right: 8px;
-}
-
-.search-box input {
-  border: none;
-  background: transparent;
-  width: 100%;
-  outline: none;
-  font-size: 16px;
-}
-
-.auth-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.login-button {
-  padding: 8px 20px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.signup-button {
-  padding: 8px 20px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.page-content {
-  flex: 1;
-}
-
-:host {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-</style>
