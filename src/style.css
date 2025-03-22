@@ -1,17 +1,17 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
 * {
   font-family: 'Poppins', sans-serif;
 }
-:root {
-  --light-primary: 74 195 206;
-  --light-secondary: 237 237 237;
-  --light-text: 255 255 255;
-  --dark-text: 0 0 0;
-  --light-background: 255 255 255;
-  --light-accent: 2 176 192;
-  --light-text-secondary: 128 128 128;
+@theme {
+  --color-primary:rgb(74,195,206);
+  --color-links: rgb(60, 110, 236);
+  --color-secondary:rgb(237,237,237);
+  --color-text:rgb(255,255,255);
+  --color-dark-text:rgb(0,0,0);
+  --color-background:rgb( 255,255,255);
+  --color-background-secondary: rgb(216, 216, 216);
+  --color-background-hover: rgb(172, 172, 172);
+  --color-accent:rgb(2,176,192);
+  --color-text-secondary: rgb(101, 101, 101);
 }
