@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import Header from './components/HeaderFull.vue'
-import RegisterForm from './components/RegisterForm.vue'
-import LoginForm from './components/LoginForm.vue'
+import Article from './components/Article.vue'
 </script>
 
 <template>
-  <Header msg="Your header message" />
-  <RegisterForm msg="Your register form" />
-  <LoginForm msg="Your login form" />
+  <Article msg="Your article" />
   <main>
-    <!-- Your page content here -->
+
   </main>
 </template>

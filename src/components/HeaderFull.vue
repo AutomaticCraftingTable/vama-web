@@ -13,10 +13,11 @@ const searchQuery = ref('')
   <div class="w-full flex flex-col bg-gray-50">
     <header class="w-full py-2.5">
       <div class="flex items-center justify-between w-full px-5">
-        <div class="flex items-center">
+        <div class="flex items-center gap-2 text-2xl">
           <a href="/">
-            <div class="w-10 h-10 flex items-center justify-center font-bold text-2xl">V</div>
+            <div class="w-10 h-10 flex items-center justify-center font-bold text-white bg-black">V</div>
           </a>
+          <div>Vama</div>
         </div>
 
         <div class="flex-grow max-w-lg mx-5">
@@ -41,7 +42,7 @@ const searchQuery = ref('')
           <button class="px-5 py-2 rounded-full border-none cursor-pointer font-medium bg-gray-200 text-gray-800">
             Zaloguj się
           </button>
-          <button class="px-5 py-2 rounded-full border-none cursor-pointer font-medium">
+          <button class="px-5 py-2 rounded-full border-none cursor-pointer font-medium bg-blue-500 text-white">
             Zajerestuj się
           </button>
         </div>
