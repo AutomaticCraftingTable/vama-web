@@ -1,10 +1,10 @@
 set dotenv-load := true
 
 exec params:
-    @docker compose exec ${DOCKER_APP_SERVICE} sh -c "{{params}}"
+    @docker compose exec ${DOCKER_APP_SERVICE} bash -c "{{params}}"
 
 dsh:
-    @docker compose exec -e PS1="🐳 [docker-shell]$ " ${DOCKER_APP_SERVICE} sh
+    @docker compose exec -it ${DOCKER_APP_SERVICE} bash
 
 init:
     @docker compose up --build --remove-orphans -d
