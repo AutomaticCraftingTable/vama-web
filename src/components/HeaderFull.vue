@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import axios from 'axios'
 
 defineProps<{
   msg?: string
@@ -7,6 +8,16 @@ defineProps<{
 
 const isLoggedIn = ref(false)
 const searchQuery = ref('')
+
+function requestTest(){
+  axios.get('/api/list/moderators')
+    .then(response => {
+      console.log(response.data)
+    })
+    .catch(error => {
+      console.log(error)
+    })
+}
 </script>
 
 <template>
