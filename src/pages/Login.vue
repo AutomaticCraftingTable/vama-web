@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import HeaderFull from '@/components/HeaderFull.vue'
+import HeaderFullNotLogged from '@/components/HeaderFullNotLogged.vue'
 import LoginForm from '@/components/LoginForm.vue'
 defineProps<{ msg?: string }>()
 </script>
 
 <template>
-  <HeaderFull></HeaderFull>
+  <HeaderFullNotLogged></HeaderFullNotLogged>
   <LoginForm></LoginForm>
 </template>

@@ -4,14 +4,14 @@
   font-family: 'Poppins', sans-serif;
 }
 @theme {
-  --color-primary:rgb(74,195,206);
+  --color-primary-main-light:rgb(0,0,0);
+  --color-primary-hover-light: rgb(25, 25, 25);
+  --color-secondary-main-light:rgb(241,241,241);
+  --color-secondary-hover-light:rgb(233,233,233);
+  --color-bg-main-light:rgb( 255,255,255);
+  --color-black-text:rgb(0,0,0);
+  --color-secondary-text: rgb(101, 101, 101);
+  --color-white-text:rgb(255,255,255);
   --color-links: rgb(60, 110, 236);
-  --color-secondary:rgb(237,237,237);
-  --color-text:rgb(255,255,255);
-  --color-dark-text:rgb(0,0,0);
-  --color-background:rgb( 255,255,255);
-  --color-background-secondary: rgb(216, 216, 216);
-  --color-background-hover: rgb(172, 172, 172);
-  --color-accent:rgb(2,176,192);
-  --color-text-secondary: rgb(101, 101, 101);
+  --color-accent-light:rgb(2,176,192);
 }
