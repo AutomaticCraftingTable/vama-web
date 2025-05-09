@@ -10,4 +10,4 @@ defineProps<{ label: string }>()
   >
     #{{ label }}
   </span>
-</template> 
+</template>
