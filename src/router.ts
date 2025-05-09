@@ -4,6 +4,7 @@ import Registration from '@/pages/Registration.vue'
 import Home from '@/pages/Home.vue'
 import VeriFailed from '@/pages/VeriFailed.vue'
 import VeriSuccess from '@/pages/VeriSuccess.vue'
+import VerifyYourEmail from '@/pages/VerifyYourEmail.vue'
 
 const routes = [
   { path: '/login', component: Login },
@@ -11,6 +12,7 @@ const routes = [
   { path: '/', component: Home },
   { path: '/emailFailed', component: VeriFailed },
   { path: '/emailSuccess', component: VeriSuccess },
+  { path: '/VerifyYourEmail', component: VerifyYourEmail },
 ]
 
 const router = createRouter({
