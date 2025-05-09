@@ -34,8 +34,7 @@ onMounted(() => {
   if (saved === 'dark' || saved === 'light') {
     setTheme(saved)
   }
-  
-  // Dodajemy nasłuchiwanie kliknięć poza dropdownem
+
   document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('user-dropdown')
     const dropdownButton = document.getElementById('dropdown-button')
@@ -101,7 +100,7 @@ onMounted(() => {
               class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-bg border border-secondary z-50"
             >
               <div class="py-1">
-                <router-link to="/login" class="block px-4 py-2 text-text hover:bg-secondary">Wyloguj się</router-link>
+                <router-link to="/login" class="block px-4 py-2 text-text font-bold hover:bg-secondary">Wyloguj się</router-link>
               </div>
             </div>
           </div>
@@ -111,23 +110,3 @@ onMounted(() => {
     </header>
   </div>
 </template>
-
-<style scoped>
-.logo-image {
-  transition: filter 0.3s ease;
-}
-
-.dark-mode-logo {
-  filter: brightness(0) invert(1);
-}
-
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-}
-</style>
