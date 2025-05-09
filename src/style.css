@@ -37,3 +37,10 @@
   --color-text-warning: rgb(215,183,74);
   --color-warning: rgb(61,45,5);
 }
+
+img[src*="Logo.png"] {
+  transition: filter 0.3s ease;
+}
+[data-theme="dark"] img[src*="Logo.png"] {
+  filter: brightness(0) invert(1);
+}
