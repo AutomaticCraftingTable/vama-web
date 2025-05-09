@@ -21,6 +21,8 @@
   --color-text-warning: rgb(183,152,74);
   --color-failure:rgb(255,233,233);
   --color-text-failure:rgb(179,71,71);
+  --color-Success:rgb(233,255,242);
+  --color-text-Success:rgb(55,164,100);
 }
 
 [data-theme="dark"] {
@@ -40,6 +42,8 @@
   --color-warning: rgb(61,45,5);
   --color-failure:rgb(255,233,233);
   --color-text-failure:rgb(179,71,71);
+  --color-Success:rgb(233,255,242);
+  --color-text-Success:rgb(55,164,100);
 }
 
 img[src*="Logo.png"] {

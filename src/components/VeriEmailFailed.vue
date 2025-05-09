@@ -2,7 +2,7 @@
 </script>
 
 <template>
-  <div class="flex flex-1 justify-center items-center min-h-screen">
+  <div class="flex flex-1 justify-center items-center min-h-screen bg-bg">
     <div class="flex flex-col bg-bg gap-12 py-12 px-10">
       <div class="bg-failure rounded-sm p-6">
         <p class="text-text-failure font-bold text-3xl">Oops...</p>
