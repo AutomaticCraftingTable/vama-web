@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import {ref} from 'vue'
 import Tag from './Tag.vue'
 
-const tags = ref(['tag1', 'tag2', 'tag3', 'tag4'])
 </script>
 
 <template>
@@ -20,7 +19,7 @@ const tags = ref(['tag1', 'tag2', 'tag3', 'tag4'])
       </div>
       <div><img src="/NoImage.png"></div>
       <div class="flex flex-wrap gap-2 mt-2">
-        <Tag v-for="(tag, idx) in tags" :key="tag + idx" :label="tag" />
+        <Tag></Tag>
       </div>
     </div>
   </div>

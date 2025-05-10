@@ -5,7 +5,6 @@ import HeaderFullLogged from '@/components/HeaderFullLogged.vue'
 import Article from '@/components/Article.vue'
 import SideBar from '@/components/SideBarHome.vue'
 
-// Symulacja stanu zalogowania
 const isLoggedIn = ref(true)
 
 defineProps<{ msg?: string }>()

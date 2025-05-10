@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
+import Lens from './Icons/Lens.vue'
+import Sun from './Icons/Sun.vue'
+import Moon from './Icons/Moon.vue'
+import Stack from './Icons/Stack.vue'
 defineProps<{
   msg?: string
 }>()
@@ -34,8 +37,8 @@ onMounted(() => {
   if (saved === 'dark' || saved === 'light') {
     setTheme(saved)
   }
-  
-  // Dodajemy nasłuchiwanie kliknięć poza dropdownem
+
+
   document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('user-dropdown')
     const dropdownButton = document.getElementById('dropdown-button')
@@ -54,11 +57,7 @@ onMounted(() => {
         <div class="flex-grow mx-5">
           <div class="flex items-center bg-secondary rounded-sm px-4 py-2 text-text-dimmed">
             <span class="mr-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
+              <Lens></Lens>
             </span>
             <input
                 type="text"
@@ -75,12 +74,10 @@ onMounted(() => {
             class="p-2 rounded-full border border-secondary hover:bg-secondary focus:outline-none focus:ring cursor-pointer"
           >
             <span v-if="theme === 'light'" class="text-text">
-              <!-- Ikona księżyca -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" /></svg>
+              <Sun></Sun>
             </span>
             <span v-else class="text-text ">
-              <!-- Ikona słońca -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
+              <Moon></Moon>
             </span>
           </button>
           <div><a href="/OwnProfile"><img src="/Avatar.png"></a></div>
@@ -90,10 +87,7 @@ onMounted(() => {
               id="dropdown-button"
               class="p-2 hover:bg-secondary text-text cursor-pointer"
             >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-</svg>
-
+              <Stack></Stack>
             </button>
             <div
               v-if="isDropdownOpen"
@@ -111,23 +105,3 @@ onMounted(() => {
     </header>
   </div>
 </template>
-
-<style scoped>
-.logo-image {
-  transition: filter 0.3s ease;
-}
-
-.dark-mode-logo {
-  filter: brightness(0) invert(1);
-}
-
-.dropdown-enter-active,
-.dropdown-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.dropdown-enter-from,
-.dropdown-leave-to {
-  opacity: 0;
-}
-</style>
