@@ -35,7 +35,6 @@ onMounted(() => {
     setTheme(saved)
   }
   
-  // Dodajemy nasłuchiwanie kliknięć poza dropdownem
   document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('user-dropdown')
     const dropdownButton = document.getElementById('dropdown-button')
