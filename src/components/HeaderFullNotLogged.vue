@@ -48,17 +48,17 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="flex gap-2.5 items-center">
+        <div class="flex gap-2.5 items-center text-text">
           <button
             @click="toggleTheme"
             :aria-label="theme === 'light' ? 'Włącz tryb ciemny' : 'Włącz tryb jasny'"
             tabindex="0"
-            class="p-2 rounded-full border border-secondary hover:bg-secondary focus:outline-none focus:ring"
+            class="p-2 rounded-full border border-text hover:bg-secondary focus:outline-none focus:ring"
           >
             <span v-if="theme === 'light'">
               <Moon></Moon>
             </span>
-            <span v-else class="text-text">
+            <span v-else>
               <Sun></Sun>
             </span>
           </button>
