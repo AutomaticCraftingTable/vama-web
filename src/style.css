@@ -19,6 +19,7 @@
   --color-danger: rgb(202,62,62);
   --color-warning: rgb(255,239,185);
   --color-text-warning: rgb(183,152,74);
+  --color-links: rgb(93, 142, 230);
 }
 
 [data-theme="dark"] {
@@ -36,6 +37,7 @@
   --color-danger: rgb(83,52,52);
   --color-text-warning: rgb(215,183,74);
   --color-warning: rgb(61,45,5);
+  --color-links: rgb(14, 99, 251);
 }
 
 img[src*="Logo.png"] {
