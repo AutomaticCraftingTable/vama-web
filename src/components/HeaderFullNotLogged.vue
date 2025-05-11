@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-
+import Lens from './Icons/Lens.vue'
+import Sun from './Icons/Sun.vue'
+import Moon from './Icons/Moon.vue'
 defineProps<{
   msg?: string
 }>()
@@ -36,11 +38,7 @@ onMounted(() => {
         <div class="flex-grow mx-5">
           <div class="flex items-center bg-secondary rounded-sm px-4 py-2 text-text-dimmed">
             <span class="mr-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
+              <Lens></Lens>
             </span>
             <input
                 type="text"
@@ -50,24 +48,22 @@ onMounted(() => {
             />
           </div>
         </div>
-        <div class="flex gap-2.5 items-center">
+        <div class="flex gap-2.5 items-center text-text">
           <button
             @click="toggleTheme"
             :aria-label="theme === 'light' ? 'Włącz tryb ciemny' : 'Włącz tryb jasny'"
             tabindex="0"
-            class="p-2 rounded-full border border-secondary hover:bg-secondary focus:outline-none focus:ring"
+            class="p-2 rounded-full border border-text hover:bg-secondary focus:outline-none focus:ring"
           >
             <span v-if="theme === 'light'">
-              <!-- Ikona księżyca -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12.79A9 9 0 1111.21 3a7 7 0 109.79 9.79z" /></svg>
+              <Moon></Moon>
             </span>
-            <span v-else class="text-text">
-              <!-- Ikona słońca -->
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>
+            <span v-else>
+              <Sun></Sun>
             </span>
           </button>
-          <router-link to="/login"><button class="px-5 py-2 rounded-sm border-none cursor-pointer bg-secondary hover:bg-secondary-hover text-text font-bold">Zaloguj się</button></router-link>
-          <router-link to="/Registration"><button class="px-5 py-2 rounded-sm border-none cursor-pointer bg-primary text-text-primary hover:bg-primary-hover font-bold">Zajerestuj się</button></router-link>
+          <router-link to="/login"><button class="px-5 py-2 rounded-sm border-none cursor-pointer font-medium bg-secondary hover:bg-secondary-hover text-text">Zaloguj się</button></router-link>
+          <router-link to="/Registration"><button class="px-5 py-2 rounded-sm border-none cursor-pointer font-medium bg-primary text-text-primary hover:bg-primary-hover">Zajerestuj się</button></router-link>
           <router-view />
         </div>
       </div>

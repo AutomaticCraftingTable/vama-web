@@ -5,7 +5,7 @@ import HeaderFullLogged from '@/components/HeaderFullLogged.vue'
 import Article from '@/components/Article.vue'
 import SideBar from '@/components/SideBarHome.vue'
 
-// Symulacja stanu zalogowania
+
 const isLoggedIn = ref(true)
 
 defineProps<{ msg?: string }>()
@@ -14,7 +14,7 @@ defineProps<{ msg?: string }>()
 <template>
   <component :is="isLoggedIn ? HeaderFullLogged : HeaderFullNotLogged" />
   
-  <div class="flex h-screen">
+  <div class="flex h-screen bg-bg">
     <SideBar v-if="isLoggedIn" />
     <div :class="['flex gap-7 mt-7', isLoggedIn ? 'ml-7' : 'ml-7']">
       <Article />
