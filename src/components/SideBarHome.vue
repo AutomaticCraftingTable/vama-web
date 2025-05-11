@@ -15,5 +15,5 @@ import Add from "./Icons/Add.vue";
       <button class="flex gap-3 cursor-pointer text-text"><Heart></Heart>Polubione</button>
     </router-link>
   </div>
-  <router-view/>
+  <router-view />
 </template>

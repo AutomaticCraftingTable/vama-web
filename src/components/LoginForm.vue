@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Eye from './Icons/Eye.vue'
 
 const email = ref('')
 const password = ref('')

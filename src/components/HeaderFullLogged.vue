@@ -96,7 +96,7 @@ onMounted(() => {
               class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-bg border border-secondary z-50"
             >
               <div class="py-1">
-                <router-link to="/login" class="block px-4 py-2 text-text hover:bg-secondary">Wyloguj się</router-link>
+                <router-link to="/login" class="block px-4 py-2 text-text font-bold hover:bg-secondary">Wyloguj się</router-link>
               </div>
             </div>
           </div>
