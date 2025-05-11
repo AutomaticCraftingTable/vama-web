@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue'
 import Eye from './Icons/Eye.vue'
+
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
