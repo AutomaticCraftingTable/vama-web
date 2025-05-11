@@ -1,19 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import {ref} from 'vue'
+import Tag from './Tag.vue'
 
 </script>
 
 <template>
-  <div class="Card flex flex-col border border-gray-300 rounded-md max-w-sm p-6 gap-5">
-    <div class="AuthorInfo flex gap-2">
-      <a href="Profile.vue"><img src="/vite.svg"/></a>
-      <div class="NickFollows font-bold">
-        <p>Nickname</p>
-        <p class="text-gray-500">69 obserwujących</p>
+  <div>
+    <div class="Card flex flex-col border border-secondary bg-bg rounded-sm max-w-sm p-6 gap-7">
+      <div class="AuthorInfo flex gap-2">
+        <a href="Profile.vue"><img src="/Logo.png"/></a>
+        <div class="NickFollows font-bold">
+          <p class="text-text">Nickname</p>
+          <p class="text-text-secondary">69 obserwujących</p>
+        </div>
       </div>
-    </div>
-    <div>
-      <p class="text-black font-bold">Naprawiam UI duolingo</p>
+      <div>
+        <p class="text-text font-bold underline">Naprawiam UI duolingo</p>
+      </div>
+      <div><img src="/NoImage.png"></div>
+      <div class="flex flex-wrap gap-2 mt-2">
+        <Tag></Tag>
+      </div>
     </div>
   </div>
 </template>

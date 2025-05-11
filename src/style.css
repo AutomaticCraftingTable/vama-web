@@ -3,15 +3,46 @@
 * {
   font-family: 'Poppins', sans-serif;
 }
+
 @theme {
-  --color-primary:rgb(74,195,206);
-  --color-links: rgb(60, 110, 236);
-  --color-secondary:rgb(237,237,237);
-  --color-text:rgb(255,255,255);
-  --color-dark-text:rgb(0,0,0);
-  --color-background:rgb( 255,255,255);
-  --color-background-secondary: rgb(216, 216, 216);
-  --color-background-hover: rgb(172, 172, 172);
-  --color-accent:rgb(2,176,192);
-  --color-text-secondary: rgb(101, 101, 101);
+  --color-primary: rgb(0,0,0);
+  --color-primary-hover: rgb(25,25,25);
+  --color-secondary: rgb(241,241,241);
+  --color-secondary-hover: rgb(233,233,233);
+  --color-bg: rgb(255,255,255);
+  --color-text: rgb(0,0,0);
+  --color-text-primary: rgb(255,255,255);
+  --color-text-secondary: rgb(109,109,109);
+  --color-text-dimmed: rgb(128,128,128);
+  --color-accent: rgb(0,180,204);
+  --color-like: rgb(255,84,84);
+  --color-danger: rgb(202,62,62);
+  --color-warning: rgb(255,239,185);
+  --color-text-warning: rgb(183,152,74);
+  --color-links: rgb(93, 142, 230);
+}
+
+[data-theme="dark"] {
+  --color-primary: rgb(52,66,83);
+  --color-primary-hover: rgb(42,78,95);
+  --color-secondary: rgb(36,36,36);
+  --color-secondary-hover: rgb(41,41,41);
+  --color-bg: rgb(28,28,28);
+  --color-text: rgb(204,204,204);
+  --color-text-primary: rgb(204,204,204);
+  --color-text-secondary: rgb(128,128,128);
+  --color-text-dimmed: rgb(109,109,109);
+  --color-accent: rgb(0,157,178);
+  --color-like: rgb(255,84,84);
+  --color-danger: rgb(83,52,52);
+  --color-text-warning: rgb(215,183,74);
+  --color-warning: rgb(61,45,5);
+  --color-links: rgb(14, 99, 251);
+}
+
+img[src*="Logo.png"] {
+  transition: filter 0.3s ease;
+}
+[data-theme="dark"] img[src*="Logo.png"] {
+  filter: brightness(0) invert(1);
 }
