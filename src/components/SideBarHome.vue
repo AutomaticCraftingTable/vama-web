@@ -6,13 +6,13 @@ import Add from "./Icons/Add.vue";
 <template>
   <div class="flex flex-col gap-7 p-5 min-h-full rounded-sm border border-secondary">
     <router-link to="/Following">
-      <button class="flex gap-3 cursor-pointer"><Add></Add>Dodaj artykuł</button>
+      <button class="flex gap-3 cursor-pointer text-text"><Add></Add>Dodaj artykuł</button>
     </router-link>
     <router-link to="/YourArticles">
-      <button class="flex gap-3 cursor-pointer"><Group></Group>Subskrypcje</button>
+      <button class="flex gap-3 cursor-pointer text-text"><Group></Group>Subskrypcje</button>
     </router-link>
     <router-link to="/LikedArticles">
-      <button class="flex gap-3 cursor-pointer"><Heart></Heart>Polubione</button>
+      <button class="flex gap-3 cursor-pointer text-text"><Heart></Heart>Polubione</button>
     </router-link>
   </div>
   <router-view/>

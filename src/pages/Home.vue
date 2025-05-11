@@ -4,10 +4,8 @@ import HeaderFullNotLogged from '@/components/HeaderFullNotLogged.vue'
 import HeaderFullLogged from '@/components/HeaderFullLogged.vue'
 import Article from '@/components/Article.vue'
 import SideBar from '@/components/SideBarHome.vue'
-import axios from 'axios'
 
 const isLoggedIn = ref(true)
-const articles = ref([])
 
 onMounted(() => {
   const url = 'http://127.0.0.1:3658/m1/829899-809617-default/api/home'
