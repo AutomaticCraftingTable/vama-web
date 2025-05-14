@@ -99,7 +99,7 @@ onMounted(() => {
               </button>
               <div v-if="isDropdownOpen" id="user-dropdown"
                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-bg border border-secondary z-50">
-                <div class="flex items-center justify-between px-4 py-2">
+                <div v-if="isSmallScreen" class="flex items-center justify-between px-4 py-2">
                   <span>Motyw</span>
                   <button @click="toggleTheme" class="relative">
                     <div class="w-12 h-6 bg-secondary rounded-full">
@@ -129,7 +129,7 @@ onMounted(() => {
               </button>
               <div v-if="isDropdownOpen" id="user-dropdown"
                    class="absolute right-0 my-2 p-2 w-48 rounded-md shadow-lg bg-bg border border-secondary">
-                <div class="flex items-center justify-between px-4 py-2">
+                <div v-if="isSmallScreen" class="flex items-center justify-between px-4 py-2">
                   <span>Motyw</span>
                   <button @click="toggleTheme" class="relative">
                     <div class="w-12 h-6 bg-secondary rounded-full">
