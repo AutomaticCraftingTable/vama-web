@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import HeaderFullNotLogged from '@/components/HeaderFullNotLogged.vue'
-import HeaderFullLogged from '@/components/HeaderFullLogged.vue'
+import { ref, onMounted } from 'vue'
+import Header from '@/components/Header.vue'
 import Article from '@/components/Article.vue'
 import SideBar from '@/components/SideBarHome.vue'
+import axiosInstance from '@/axiosInstance'
 
+const articles = ref([])
+const role = ref('guest')
 
-const isLoggedIn = ref(true)
-
-defineProps<{ msg?: string }>()
+onMounted(() => {
+  const url = '/api/home'
+  axiosInstance.get(url).then(response => {
+    articles.value = response.data.articles
+    role.value = response.data.role
+  }).catch(error => {
+    console.error('Błąd podczas pobierania danych:', error)
+  })
+})
 </script>
 
 <template>
-  <component :is="isLoggedIn ? HeaderFullLogged : HeaderFullNotLogged" />
-  
-  <div class="flex h-screen bg-bg">
-    <SideBar v-if="isLoggedIn" />
-    <div :class="['flex gap-7 mt-7', isLoggedIn ? 'ml-7' : 'ml-7']">
-      <Article />
-      <Article />
+  <Header></Header>
+  <div class="flex h-screen">
+    <SideBar v-if="role !== 'guest'" />
+    <div class="flex flex-row gap-7 mt-7">
+      <Article v-for="(article, index) in articles" :key="index" :article="article" />
     </div>
   </div>
 </template>
