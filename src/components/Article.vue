@@ -4,7 +4,11 @@ import Tag from './Tag.vue'
 
 const props = defineProps<{
   article: {
-    author: string,
+    author:{
+      logo: string,
+      nickname:string,
+      followers: number
+    },
     title: string,
     tags: string
   }
@@ -15,10 +19,10 @@ const props = defineProps<{
   <div>
     <div class="Card flex flex-col border border-secondary bg-bg rounded-sm max-w-sm p-6 gap-7">
       <div class="AuthorInfo flex gap-2">
-        <a href="Profile.vue"><img src="/Logo.png"/></a>
+        <a href="Profile.vue"><img :src="article.author.logo" alt="/Logo.png" class="w-10 h-10 rounded-full object-cover" /></a>
         <div class="NickFollows font-bold">
-          <p class="text-text">{{ article.author }}</p>
-          <p class="text-text-secondary">69 obserwujących</p>
+          <p class="text-text">{{ article.author.nickname }}</p>
+          <p class="text-text-secondary">{{ article.author.followers }} obserwujących</p>
         </div>
       </div>
       <div>

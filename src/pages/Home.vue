@@ -3,20 +3,19 @@ import { ref, onMounted } from 'vue'
 import Header from '@/components/Header.vue'
 import Article from '@/components/Article.vue'
 import SideBar from '@/components/SideBarHome.vue'
-import axios from 'axios'
+import axiosInstance from '@/axiosInstance'
 
 const articles = ref([])
-const role= ref('guest')
+const role = ref('guest')
 
 onMounted(() => {
-  const url = 'http://127.0.0.1:3658/m1/829899-809617-default/api/home'
-  axios.get(url).then(response => {
+  const url = '/api/home'
+  axiosInstance.get(url).then(response => {
     articles.value = response.data.articles
     role.value = response.data.role
   }).catch(error => {
     console.error('Błąd podczas pobierania danych:', error)
   })
-
 })
 </script>
 
