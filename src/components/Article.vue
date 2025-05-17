@@ -9,6 +9,7 @@ const props = defineProps<{
       nickname:string,
       followers: number
     },
+    thumbnail: string,
     title: string,
     tags: string
   }
@@ -28,7 +29,7 @@ const props = defineProps<{
       <div>
         <p class="text-text font-bold underline">{{ article.title }}</p>
       </div>
-      <div class="flex justify-center"><img src="/NoImage.png"></div>
+      <div class="flex justify-center"><img :src="article.thumbnail" alt="Logo"/></div>
       <Tag :tags="article.tags" />
     </div>
   </div>
