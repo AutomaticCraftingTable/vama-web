@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps} from 'vue';
+import { defineProps } from 'vue';
 import Tag from './Tag.vue';
 import Edit from './Icons/Edit.vue';
 
@@ -8,7 +8,8 @@ const props = defineProps<{
     title: string,
     thumbnail: string,
     tags: string
-  }
+  },
+  isCurrentUser?: boolean
 }>()
 
 </script>
@@ -23,7 +24,7 @@ const props = defineProps<{
         <Tag :tags="article.tags" />
       </div>
       <div class="flex-1"></div>
-      <button class="p-1 rounded">
+      <button v-if="isCurrentUser" class="p-1 rounded">
         <Edit class="w-6 h-6 text-text-secondary" />
       </button>
     </div>

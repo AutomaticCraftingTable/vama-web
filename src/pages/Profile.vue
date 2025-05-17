@@ -15,6 +15,7 @@ const user = ref({
   link: ''
 })
 const articles = ref([])
+const isCurrentUser = ref(false)
 
 onMounted(async () => {
   try {
@@ -28,6 +29,13 @@ onMounted(async () => {
     }
     articles.value = data.articles
     role.value = data.role
+
+
+    const profileAccountId = data.profile.account_id
+    const myAccountId = localStorage.getItem('account_id')
+    isCurrentUser.value = myAccountId === profileAccountId
+
+    console.log('profileAccountId', profileAccountId, 'myAccountId', myAccountId)
   } catch (error) {
     console.error('Błąd podczas pobierania danych:', error)
   }
@@ -39,7 +47,7 @@ onMounted(async () => {
   <div class="flex h-screen">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex flex-col w-full gap-4 mt-4">
-      <UserInfo :user="user" />
+      <UserInfo :user="user" :is-current-user="isCurrentUser" />
       <ArticleCard
         v-for="(article, idx) in articles"
         :key="idx"
