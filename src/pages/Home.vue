@@ -20,8 +20,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <Header></Header>
-  <div class="flex h-screen">
+  <Header :role="role" />
+  <div class="flex h-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex flex-row gap-7 mt-7">
       <Article v-for="(article, index) in articles" :key="index" :article="article" />

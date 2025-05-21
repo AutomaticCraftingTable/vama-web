@@ -5,6 +5,6 @@ defineProps<{ msg?: string }>()
 </script>
 
 <template>
-  <Header></Header>
+  <Header :role="'guest'" />
   <LoginForm></LoginForm>
 </template>
