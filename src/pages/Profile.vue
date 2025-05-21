@@ -43,16 +43,19 @@ onMounted(async () => {
 </script>
 
 <template>
-  <Header />
+  <Header :role="role" />
   <div class="flex h-screen">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex flex-col w-full gap-4 mt-4">
       <UserInfo :user="user" :is-current-user="isCurrentUser" />
-      <ArticleCard
-        v-for="(article, idx) in articles"
-        :key="idx"
-        :article="article"
-      />
+      <div class="flex flex-wrap gap-6 justify-center md:justify-start">
+        <ArticleCard
+          v-for="(article, idx) in articles"
+          :key="idx"
+          :article="article"
+          :is-current-user="isCurrentUser"
+        />
+      </div>
     </div>
   </div>
 </template>

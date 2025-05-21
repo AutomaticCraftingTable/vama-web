@@ -14,7 +14,7 @@ const props = defineProps<{
 
 </script>
 <template>
-  <div class="bg-bg rounded-md p-5 w-full">
+  <div class="bg-bg rounded-md p-5 w-[360px]">
     <p class="text-text font-bold text-lg mb-3 text-left block">{{ article.title }}</p>
     <div class="mb-3 w-full h-[220px] bg-secondary rounded overflow-hidden">
       <img :src="article.thumbnail" alt="No image" class="w-full h-full object-cover" />
