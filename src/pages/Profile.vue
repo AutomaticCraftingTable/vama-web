@@ -8,6 +8,7 @@ import axiosInstance from "@/axiosInstance";
 
 const role = ref('guest')
 const user = ref({
+  account_id: 0,
   logo: '',
   nickname: '',
   followers: 0,
@@ -21,6 +22,7 @@ onMounted(async () => {
   try {
     const { data } = await axiosInstance.get('/api/profile')
     user.value = {
+      account_id: data.profile.account_id,
       logo: data.profile.logo,
       nickname: data.profile.nickname,
       followers: data.profile.followers,
@@ -29,7 +31,6 @@ onMounted(async () => {
     }
     articles.value = data.articles
     role.value = data.role
-
 
     const profileAccountId = data.profile.account_id
     const myAccountId = localStorage.getItem('account_id')

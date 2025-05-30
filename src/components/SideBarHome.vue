@@ -3,6 +3,9 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import Heart from "./Icons/Heart.vue";
 import Group from "./Icons/Group.vue";
 import Add from "./Icons/Add.vue";
+import { useRoute } from 'vue-router';
+
+const route = useRoute();
 
 const isMobile = ref(window.innerWidth < 768);
 
@@ -17,29 +20,56 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize);
 });
+const isActive = (path: string) => route.path === path;
 </script>
 <template>
-  <div v-if="!isMobile" class="flex flex-col gap-7 p-5 min-h-full rounded-sm border border-secondary">
-    <router-link to="/Following">
-      <button class="flex gap-3 cursor-pointer text-text text-nowrap"><Add class="w-6 h-6"/>Dodaj artykuł</button>
+  <div v-if="!isMobile" class="flex flex-col gap-4 p-5 min-h-full rounded-sm border border-secondary  w-64">
+    <router-link 
+      to="/AddArticle" 
+      :class="[
+        'flex items-center gap-3 px-3 py-2 rounded-md transition-colors', isActive('/AddArticle') ? 'bg-secondary text-text' : 'text-text-dimmed hover:bg-secondary']"
+    >
+      <Add :class="isActive('/AddArticle') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-6 h-6"/>
+      <span>Dodaj artykuł</span>
     </router-link>
-    <router-link to="/YourArticles">
-      <button class="flex gap-3 cursor-pointer text-text"><Group class="w-6 h-6"/>Subskrypcje</button>
+    <router-link 
+      to="/Following" 
+      :class="[
+        'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
+        isActive('/Following') ? 'bg-secondary text-text' : 'text-text-dimmed hover:bg-secondary'
+      ]"
+    >
+      <Group :class="isActive('/Following') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-6 h-6"/>
+      <span>Subskrypcje</span>
     </router-link>
-    <router-link to="/LikedArticles">
-      <button class="flex gap-3 cursor-pointer text-text"><Heart class="w-6 h-6"/>Polubione</button>
+    
+    <router-link 
+      to="/LikedArticles" 
+      :class="[
+        'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
+        isActive('/LikedArticles') ? 'bg-secondary text-text' : 'text-text-dimmed hover:bg-secondary'
+      ]"
+    >
+      <Heart :class="[isActive('/LikedArticles') ? 'fill-current text-like' : 'fill-none stroke-text']" class="w-6 h-6"/>
+      <span>Polubione</span>
     </router-link>
   </div>
-  <div v-else class="fixed bottom-0 left-0 w-full bg-white border-t border-secondary z-50">
+  <div v-else class="fixed bottom-0 left-0 w-full bg-bg border-t border-secondary z-50">
     <div class="flex justify-around items-center py-2">
-      <router-link to="/YourArticles">
-        <button><Group class="w-8 h-8" /></button>
-      </router-link>
       <router-link to="/Following">
-        <button><Add class="w-8 h-8" /></button>
+        <button class="p-2 rounded-full">
+          <Group :class="isActive('/Following') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-8 h-8" />
+        </button>
+      </router-link>
+      <router-link to="/AddArticle">
+        <button class="p-2 rounded-full">
+          <Add :class="isActive('/AddArticle') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-8 h-8" />
+        </button>
       </router-link>
       <router-link to="/LikedArticles">
-        <button><Heart class="w-8 h-8" /></button>
+        <button class="p-2 rounded-full">
+          <Heart :class="[isActive('/LikedArticles') ? 'fill-current text-text' : 'fill-none stroke-text']" class="w-8 h-8"/>
+        </button>
       </router-link>
     </div>
   </div>
