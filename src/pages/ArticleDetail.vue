@@ -13,9 +13,11 @@ const route = useRoute();
 const article = ref();
 const comments = ref<{
   id: number;
-  causer: string;
+  causer:{
+    nickname: string;
+    logo: string;
+  };
   content: string;
-  logo: string;
   created_at: string;
 }[]>([]);
 const role = ref('guest');
