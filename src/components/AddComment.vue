@@ -6,18 +6,18 @@ import { AxiosError } from 'axios';
 
 const props = defineProps<{
   articleId: number;
-  role?: string;
 }>();
 
 const emit = defineEmits(['comment-added']);
 const newComment = ref('');
+const role = ref(localStorage.getItem('userRole') || 'guest');
 
 const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
 const addComment = async () => {
-  if (props.role === 'guest') {
+  if (role.value === 'guest') {
     alertState.value = { 
-      message: 'Aby dodać komentarz, musisz się zalogować.', 
+      message: 'Do tej akcji, musisz się zalogować', 
       type: 'info' 
     };
     return;
@@ -25,21 +25,28 @@ const addComment = async () => {
 
   if (!newComment.value.trim()) return;
 
+  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+
+  const localComment = {
+    id: Date.now(),
+    causer: {
+      nickname: userData.nickname,
+      logo: userData.logo,
+    },
+    content: newComment.value,
+    created_at: new Date().toISOString(),
+  };
+
+  emit('comment-added', localComment);
+  newComment.value = '';
+
   try {
     const response = await axiosInstance.post(`/api/article/${props.articleId}/comment`, {
-      content: newComment.value,
+      content: localComment.content,
     });
 
     if (response.status === 200) {
-      const addedComment = {
-        id: response.data.id,
-        causer: 'Ty',
-        content: newComment.value,
-        logo: '',
-        created_at: new Date().toISOString(),
-      };
-      emit('comment-added', addedComment);
-      newComment.value = '';
+      localComment.id = response.data.id;
       alertState.value = { message: 'Komentarz został dodany.', type: 'success' };
     }
   } catch (error) {
@@ -65,12 +72,10 @@ const closeAlert = () => {
       v-model="newComment" 
       placeholder="Dodaj komentarz..." 
       class="text-text border rounded p-2 w-full"
-      :disabled="role === 'guest'"
     ></textarea>
     <button 
       @click="addComment" 
       class="mt-2 bg-secondary text-nowrap text-text rounded px-4 py-2 w-min"
-      :class="{ 'opacity-50 cursor-not-allowed': role === 'guest' }"
     >
       Dodaj komentarz
     </button>

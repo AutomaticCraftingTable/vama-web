@@ -7,7 +7,7 @@ import { onMounted, ref } from "vue";
 import axiosInstance from "@/axiosInstance";
 import Alert from '@/components/Alert.vue';
 
-const role = ref('guest')
+const role = ref(localStorage.getItem('userRole') || 'guest')
 const user = ref({
   account_id: 0,
   logo: '',
@@ -33,13 +33,10 @@ onMounted(async () => {
       link: data.link
     }
     articles.value = data.articles
-    role.value = data.role
 
     const profileAccountId = data.profile.account_id
     const myAccountId = localStorage.getItem('account_id')
     isCurrentUser.value = myAccountId === profileAccountId
-
-    console.log('profileAccountId', profileAccountId, 'myAccountId', myAccountId)
   } catch (error) {
     console.error('Błąd podczas pobierania danych:', error)
     alertState.value = { message: 'Wystąpił błąd podczas ładowania danych profilu.', type: 'error' };

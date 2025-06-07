@@ -20,8 +20,8 @@ if (props.duration) {
   <div 
     class="fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg"
     :class="{
-      'bg-red-500 text-white': type === 'error',
-      'bg-green-500 text-white': type === 'success',
+      'bg-failure text-text-failure': type === 'error',
+      'bg-success text-text-success': type === 'success',
       'bg-blue-500 text-white': type === 'info'
     }"
   >

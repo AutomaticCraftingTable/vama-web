@@ -7,7 +7,7 @@ import axiosInstance from '@/axiosInstance'
 import Alert from '@/components/Alert.vue'
 
 const articles = ref([])
-const role = ref('guest')
+const role = ref(localStorage.getItem('userRole') || 'guest')
 
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 
@@ -15,7 +15,6 @@ onMounted(() => {
   const url = '/api/home'
   axiosInstance.get(url).then(response => {
     articles.value = response.data.articles
-    role.value = response.data.role
   }).catch(error => {
     console.error('Błąd podczas pobierania danych:', error)
     alertState.value = { message: 'Wystąpił błąd podczas ładowania artykułów.', type: 'error' }
@@ -28,7 +27,7 @@ const closeAlert = () => {
 </script>
 
 <template>
-  <Header></Header>
+  <Header :role="role"></Header>
   <div class="md:flex h-screen w-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex-1 flex justify-center">

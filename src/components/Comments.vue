@@ -23,6 +23,7 @@ const props = defineProps<{
   role?: string;
 }>();
 
+const localComments = ref([...props.comments]);
 const activeMenuId = ref<number | null>(null);
 const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
@@ -83,6 +84,10 @@ const navigateToProfile = (nickname: string) => {
   router.push(`/profile/${nickname}`);
 };
 
+const handleCommentAdded = (newComment: any) => {
+  localComments.value.unshift(newComment);
+};
+
 onMounted(() => {
   document.addEventListener('click', closeMenu);
 });
@@ -94,10 +99,10 @@ onUnmounted(() => {
 
 <template>
   <div class="comments">
-    <AddComment :article-id="articleId" :role="role" />
-    <h2 class="mt-6 text-xl font-semibold text-text">Komentarze: {{ comments.length }}</h2>
-    <div v-if="comments.length === 0" class="text-gray-500">Brak komentarzy.</div>
-    <div v-for="comment in comments" :key="comment.id" class="border-b border-gray-300 py-2 flex items-start gap-2 relative">
+    <AddComment :article-id="articleId" :role="role" @comment-added="handleCommentAdded" />
+    <h2 class="mt-6 text-xl font-semibold text-text">Komentarze: {{ localComments.length }}</h2>
+    <div v-if="localComments.length === 0" class="text-text-dimmed">Brak komentarzy.</div>
+    <div v-for="comment in localComments" :key="comment.id" class="border-b border-gray-300 py-2 flex items-start gap-2 relative">
       <div 
         class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:opacity-80"
         @click="navigateToProfile(comment.causer.nickname)"

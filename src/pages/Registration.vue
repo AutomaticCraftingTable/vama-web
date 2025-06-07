@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import Header from '@/components/Header.vue'
 import RegisterForm from '@/components/RegisterForm.vue'
-defineProps<{ msg?: string }>()
+
+const role = ref(localStorage.getItem('userRole') || 'guest')
 </script>
 
 <template>
-  <Header></Header>
-  <RegisterForm></RegisterForm>
+  <Header :role="role"></Header>
+  <RegisterForm />
 </template>

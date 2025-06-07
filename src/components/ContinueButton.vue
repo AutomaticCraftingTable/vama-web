@@ -5,11 +5,3 @@
     Kontynuuj
   </button>
 </template>
-
-<script setup lang="ts">
-//brak skryptu, emitowanie zdarzenia bedzie dodane pozniej
-</script>
-
-<style scoped>
-/* Tailwind handles most styling */
-</style>

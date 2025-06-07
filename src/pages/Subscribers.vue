@@ -31,7 +31,7 @@ interface ApiResponse {
 }
 
 const subscribers = ref<Subscription[]>([]);
-const role = ref('guest');
+const role = ref(localStorage.getItem('userRole') || 'guest');
 const alert = ref<{ message: string; type: 'success' | 'error' } | null>(null);
 const isLoading = ref(false);
 
@@ -41,7 +41,6 @@ onMounted(async () => {
     const url = '/api/home/subscriptions';
     const response = await axiosInstance.get<ApiResponse>(url);
     subscribers.value = response.data.subscriptions;
-    role.value = response.data.role;
   } catch (error) {
     console.error('Błąd podczas pobierania danych:', error);
     alert.value = { message: 'Wystąpił błąd podczas pobierania subskrybentów', type: 'error' };

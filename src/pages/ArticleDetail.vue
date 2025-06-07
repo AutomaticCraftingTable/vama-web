@@ -20,7 +20,7 @@ const comments = ref<{
   content: string;
   created_at: string;
 }[]>([]);
-const role = ref();
+const role = ref(localStorage.getItem('userRole') || 'guest');
 const currentUser = ref();
 const isCurrentUser = ref(false);
 const isLiked = ref(false);
@@ -32,7 +32,6 @@ onMounted(async () => {
     const { data } = await axiosInstance.get(`/api/article/${route.params.id}`);
     article.value = data;
     comments.value = data.comments;
-    role.value = data.profile.role;
     currentUser.value = data.profile;
     isCurrentUser.value = currentUser.value.account_id === data.author.account_id;
     isLiked.value = data.isLiked;

@@ -13,7 +13,7 @@ interface LikedArticle {
 }
 
 const articles = ref<LikedArticle[]>([]);
-const role = ref('guest');
+const role = ref(localStorage.getItem('userRole') || 'guest');
 const alert = ref<{ message: string; type: 'success' | 'error' } | null>(null);
 
 onMounted(async () => {
@@ -21,7 +21,6 @@ onMounted(async () => {
     const url = '/api/home/liked';
     const response = await axiosInstance.get(url);
     articles.value = response.data.articles;
-    role.value = response.data.role;
   } catch (error) {
     console.error('Błąd podczas pobierania danych:', error);
   }

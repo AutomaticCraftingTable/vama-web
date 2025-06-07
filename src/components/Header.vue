@@ -5,15 +5,21 @@ import Moon from './Icons/Moon.vue'
 import Lens from './Icons/Lens.vue'
 import Stack from './Icons/Stack.vue'
 import AuthButtons from './AuthButtons.vue'
-import axios from 'axios'
+import axiosInstance from '@/axiosInstance'
+import { useRouter } from 'vue-router'
+import Alert from './Alert.vue'
 
+const props = defineProps<{
+  role?: string
+}>()
 
-const role = ref()
+const router = useRouter()
 const isDropdownOpen = ref(false)
 const searchQuery = ref('')
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const theme = ref(prefersDark ? 'dark' : 'light')
 const isSmallScreen = ref(window.innerWidth < 768)
+const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 
 window.addEventListener('resize', () => {
   isSmallScreen.value = window.innerWidth < 768
@@ -37,19 +43,31 @@ const closeDropdown = () => {
   isDropdownOpen.value = false
 }
 
+const closeAlert = () => {
+  alertState.value = null
+}
+
+const handleLogout = async () => {
+  try {
+    await axiosInstance.post('/api/auth/logout')
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    localStorage.removeItem('userRole')
+    delete axiosInstance.defaults.headers.common['Authorization']
+    router.push('/login')
+  } catch (error) {
+    alertState.value = { 
+      message: 'Wystąpił błąd podczas wylogowywania.', 
+      type: 'error' 
+    }
+  }
+}
+
 onMounted(() => {
   const saved = localStorage.getItem('theme')
   if (saved === 'dark' || saved === 'light') {
     setTheme(saved)
   }
-
-  axios.get('http://127.0.0.1:3658/m1/829899-809617-default/api/home')
-      .then(response => {
-        role.value = response.data.role
-      })
-      .catch(error => {
-        console.error('Błąd podczas pobierania roli użytkownika:', error)
-      })
 
   document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('user-dropdown')
@@ -68,27 +86,27 @@ onMounted(() => {
         <div><a href="/"><img src="/Logo.png"></a></div>
         <div class="flex-grow mx-5">
           <div v-if="!isSmallScreen" class="flex items-center bg-secondary rounded-sm py-2 text-text-dimmed">
-                        <span class="mr-2 px-3.5">
-                            <Lens/>
-                        </span>
+            <span class="mr-2 px-3.5">
+              <Lens/>
+            </span>
             <input type="text" placeholder="Szukaj..." v-model="searchQuery"
-                   class="border-none bg-transparent w-full outline-none text-base  transition duration-150 ease-in-out"/>
+                   class="border-none bg-transparent w-full outline-none text-base text-text transition duration-150 ease-in-out"/>
           </div>
           <div v-if="isSmallScreen" class="flex items-center justify-end text-text">
-                        <span>
-                            <Lens class="h-6 w-6"/>
-                        </span>
+            <span>
+              <Lens class="h-6 w-6"/>
+            </span>
           </div>
         </div>
         <div class="flex gap-2.5 items-center text-text justify-end">
           <button v-if="!isSmallScreen" @click="toggleTheme" tabindex="0"
                   class="p-2 rounded-full border border-text hover:bg-secondary focus:outline-none focus:ring cursor-pointer">
-                        <span v-if="theme === 'light'">
-                            <Moon/>
-                        </span>
-                        <span v-else>
-                            <Sun/>
-                        </span>
+            <span v-if="theme === 'light'">
+              <Moon/>
+            </span>
+            <span v-else>
+              <Sun/>
+            </span>
           </button>
           <div class="flex flex-row items-center" v-if="role !== 'guest'">
             <div><a href="/OwnProfile"><img src="/Avatar.png"></a></div>
@@ -100,7 +118,7 @@ onMounted(() => {
               <div v-if="isDropdownOpen" id="user-dropdown"
                    class="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-bg border border-secondary z-50">
                 <div v-if="isSmallScreen" class="flex items-center justify-between px-4 py-2">
-                  <span>Motyw</span>
+                  <span class="text-text">Motyw</span>
                   <button @click="toggleTheme" class="relative">
                     <div class="w-12 h-6 bg-secondary rounded-full">
                       <div
@@ -110,9 +128,9 @@ onMounted(() => {
                   </button>
                 </div>
                 <div class="py-1">
-                  <router-link to="/login"
-                               class="block px-4 py-2 text-text font-bold hover:bg-secondary">Wyloguj się
-                  </router-link>
+                  <button @click="handleLogout"
+                          class="block w-full text-left px-4 py-2 text-text hover:bg-secondary">Wyloguj się
+                  </button>
                 </div>
               </div>
             </div>
@@ -130,7 +148,7 @@ onMounted(() => {
               <div v-if="isDropdownOpen" id="user-dropdown"
                    class="absolute right-0 my-2 p-2 w-48 rounded-md shadow-lg bg-bg border border-secondary">
                 <div v-if="isSmallScreen" class="flex items-center justify-between px-4 py-2">
-                  <span>Motyw</span>
+                  <span class="text-text">Motyw</span>
                   <button @click="toggleTheme" class="relative">
                     <div class="w-12 h-6 bg-secondary rounded-full">
                       <div
@@ -148,6 +166,12 @@ onMounted(() => {
         </div>
       </div>
     </header>
+    <Alert 
+      v-if="alertState"
+      :message="alertState.message"
+      :type="alertState.type"
+      :duration="5000"
+      @close="closeAlert"
+    />
   </div>
-
 </template>

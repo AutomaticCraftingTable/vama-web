@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue'
 import Eye from './Icons/Eye.vue'
-import axiosInstance from '@/axiosInstance'; // Import axiosInstance
-import Alert from '@/components/Alert.vue'; // Import komponentu Alert
-import { AxiosError } from 'axios'; // Import AxiosError
+import axiosInstance from '@/axiosInstance';
+import Alert from '@/components/Alert.vue';
+import { AxiosError } from 'axios';
 
 const email = ref('')
 const password = ref('')
@@ -11,7 +11,6 @@ const showPassword = ref(false)
 const termsAccepted = ref(false)
 const isMobile = ref(false)
 
-// Zmienna stanu dla alertu
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
 
 const togglePasswordVisibility = () => {
@@ -20,7 +19,6 @@ const togglePasswordVisibility = () => {
 
 const handleRegister = async () => {
   if (!termsAccepted.value) {
-    // Zamiast alert(), użyj alertState
     alertState.value = { message: 'Musisz zaakceptować regulamin przed rejestracją!', type: 'error' };
     return;
   }
@@ -29,23 +27,19 @@ const handleRegister = async () => {
     const response = await axiosInstance.post('/api/auth/register', {
       email: email.value,
       password: password.value,
-      // Jeśli API wymaga innych pól (np. nickname, potwierdzenie hasła), dodaj je tutaj
     });
 
     console.log('Rejestracja pomyślna:', response.data);
-    // Tutaj można przekierować użytkownika lub pokazać komunikat sukcesu
-    // router.push('/login'); // Przykład przekierowania na stronę logowania
 
-    alertState.value = { message: 'Rejestracja pomyślna!', type: 'success' }; // Wyświetl alert sukcesu
+    alertState.value = { message: 'Rejestracja pomyślna!', type: 'success' };
 
   } catch (error) {
-    console.error('Błąd podczas rejestracji:', error); // Zachowano log w konsoli do debugowania
+    console.error('Błąd podczas rejestracji:', error);
     let errorMessage = 'Wystąpił błąd podczas rejestracji.';
-    // Sprawdzenie, czy błąd jest instancją AxiosError i ma odpowiednią strukturę
     if (error instanceof AxiosError && error.response?.data?.message) {
       errorMessage = error.response.data.message;
     } else if (error instanceof Error) {
-       errorMessage = error.message; // Użyj domyślnego komunikatu błędu JS
+       errorMessage = error.message;
     }
     alertState.value = { message: errorMessage, type: 'error' };
   }
@@ -61,17 +55,17 @@ onMounted(() => {
 })
 
 const containerClass = computed(() =>
-    isMobile.value ? 'flex flex-col min-h-screen bg-gray-100' : 'flex justify-center items-center min-h-screen bg-bg p-5',
+    isMobile.value ? 'flex flex-col h-screen bg-bg' : 'flex justify-center items-center h-screen bg-bg p-5',
 )
 
 const cardClass = computed(() =>
     isMobile.value ? 'flex-1 px-4 pt-4' : 'w-full max-w-md bg-background rounded-lg p-8 shadow-xl',
 )
 
-const inputClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-gray-200 rounded text-gray-700 outline-none' : 'w-full py-3.5 px-4 rounded-sm text-text-secondary outline-none transition-colors bg-secondary',
+const inputClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-secondary rounded text-text outline-none' : 'w-full py-3.5 px-4 rounded-sm text-text outline-none transition-colors bg-secondary',
 )
 
-const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-black text-white font-medium rounded' : 'w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-text-primary font-bold border-none rounded-md text-base cursor-pointer mt-2 transition-colors',
+const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary text-text-primary font-bold rounded' : 'w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-text-primary font-bold border-none rounded-md text-base cursor-pointer mt-2 transition-colors',
 )
 
 const closeAlert = () => {
@@ -81,16 +75,11 @@ const closeAlert = () => {
 
 <template>
   <div :class="containerClass">
-
-
     <div :class="cardClass">
-      <h1 :class="isMobile ? 'text-xl font-medium text-gray-900' : 'text-2xl font-semibold text-text m-0 mb-2'">Witamy w
-        VAMA</h1>
-      <p :class="isMobile ? 'text-sm text-gray-600 mb-6' : 'text-base text-text-secondary m-0 mb-6'">
-        {{ isMobile ? 'Share your history' : 'Rozpocznij pisanie swoich historii' }}
-      </p>
+      <h1 :class="isMobile ? 'text-xl font-medium text-text' : 'text-2xl font-semibold text-text m-0 mb-2'">Witamy w VAMA</h1>
+      <p class="text-sm text-text-dimmed mb-6">Rozpocznij pisanie swoich historii</p>
 
-      <form @submit.prevent="handleRegister" class="w-full flex flex-col gap-4">
+      <form @submit.prevent="handleRegister" class="w-full h-3/4 flex flex-col gap-4">
         <input
             type="email"
             v-model="email"
@@ -115,9 +104,9 @@ const closeAlert = () => {
             <Eye></Eye>
           </button>
         </div>
-        <div class="bg-red-500 size-3.5 h-full"></div>
+        <div class="flex-1"></div>
         <div class="mt-4">
-          <label class="flex items-start text-xs text-gray-500 leading-tight">
+          <label class="flex items-start text-xs text-text-dimmed leading-tight">
             <input type="checkbox" v-model="termsAccepted" required class="mr-2 mt-0.5"/>
             <span class="text-sm text-text-secondary leading-tight">
               Zgadzam się z
@@ -129,8 +118,8 @@ const closeAlert = () => {
         <button type="submit" :class="buttonClass">
           Zarejestruj się
         </button>
-        <div v-if="isMobile" class="text-center text-sm mt-2">
-          albo <a href="#" class="text-gray-600">zaloguj się</a>
+        <div class="text-center text-sm text-text-dimmed mt-2">
+          albo <a href="/login" class="text-text">zaloguj się</a>
         </div>
       </form>
         <Alert 

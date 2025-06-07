@@ -11,7 +11,7 @@ import ContinueButton from '@/components/ContinueButton.vue'
 import AddTagsSection from '@/components/AddTagsSection.vue'
 import Alert from '@/components/Alert.vue'
 
-const role = ref('guest')
+const role = ref(localStorage.getItem('userRole') || 'guest')
 const currentStep = ref(1)
 
 const articleTitle = ref('')
@@ -24,7 +24,7 @@ const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(nu
 onMounted(() => {
   const url = '/api/home'
   axiosInstance.get(url).then(response => {
-    role.value = response.data.role
+    // Pobieramy tylko potrzebne dane, bez roli
   }).catch(error => {
     console.error('Błąd podczas pobierania danych:', error)
   })
@@ -70,7 +70,7 @@ const updateTags = (value: string) => { articleTags.value = value }
 </script>
 
 <template>
-  <Header></Header>
+  <Header :role="role"></Header>
   <div class="flex flex-row h-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex h-screen w-screen">
