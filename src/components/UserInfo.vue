@@ -16,15 +16,24 @@ const props = defineProps<{
     link: string
   },
   isCurrentUser: boolean,
-  showBio?: boolean
+  showBio?: boolean,
+  role: string
 }>()
 
 const showMenu = ref(false)
 const handleMenu = () => (showMenu.value = !showMenu.value)
 
-const alert = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
 const handleReport = async () => {
+  if (props.role === 'guest') {
+    alert.value = { 
+      message: 'Aby zgłosić profil, musisz się zalogować.', 
+      type: 'info' 
+    };
+    return;
+  }
+
   try {
     await axiosInstance.post(`/api/profile/${props.user.nickname}/report`);
     showMenu.value = false;
@@ -49,6 +58,14 @@ watch(() => props.user, (newUser) => {
 }, { immediate: true });
 
 const toggleSubscription = async () => {
+  if (props.role === 'guest') {
+    alert.value = { 
+      message: 'Aby subskrybować profil, musisz się zalogować.', 
+      type: 'info' 
+    };
+    return;
+  }
+
   try {
     if (isSubscribed.value) {
       await axiosInstance.delete(`/api/profile/${props.user.nickname}/subscribe`);
@@ -60,6 +77,7 @@ const toggleSubscription = async () => {
     isSubscribed.value = !isSubscribed.value;
   } catch (error) {
     console.error('Błąd podczas zmiany subskrypcji:', error);
+    alert.value = { message: 'Wystąpił błąd podczas zmiany subskrypcji', type: 'error' };
   }
 };
 </script>

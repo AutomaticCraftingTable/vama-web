@@ -29,10 +29,12 @@ const closeAlert = () => {
 
 <template>
   <Header></Header>
-  <div class="flex h-screen bg-bg">
+  <div class="md:flex h-screen w-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
-    <div class="flex flex-row gap-7 mt-7">
-      <Article v-for="(article, index) in articles" :key="index" :article="article" />
+    <div class="flex-1 flex justify-center">
+      <div class="flex flex-col flex-wrap justify-center items-start gap-7 mt-7 px-4 md:flex-row md:px-0 max-w-[1200px]">
+        <Article v-for="(article, index) in articles" :key="index" :article="article" />
+      </div>
     </div>
   </div>
   <Alert v-if="alertState" :message="alertState.message" :type="alertState.type" :duration="5000" @close="closeAlert" />

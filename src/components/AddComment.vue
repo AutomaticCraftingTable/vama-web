@@ -6,14 +6,23 @@ import { AxiosError } from 'axios';
 
 const props = defineProps<{
   articleId: number;
+  role?: string;
 }>();
 
 const emit = defineEmits(['comment-added']);
 const newComment = ref('');
 
-const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
 const addComment = async () => {
+  if (props.role === 'guest') {
+    alertState.value = { 
+      message: 'Aby dodać komentarz, musisz się zalogować.', 
+      type: 'info' 
+    };
+    return;
+  }
+
   if (!newComment.value.trim()) return;
 
   try {
@@ -52,8 +61,17 @@ const closeAlert = () => {
 
 <template>
   <div class="mb-4 flex flex-col items-end">
-    <textarea v-model="newComment" placeholder="Dodaj komentarz..." class="text-text border rounded p-2 w-full"></textarea>
-    <button @click="addComment" class="mt-2 bg-secondary text-nowrap text-text rounded px-4 py-2 w-min">
+    <textarea 
+      v-model="newComment" 
+      placeholder="Dodaj komentarz..." 
+      class="text-text border rounded p-2 w-full"
+      :disabled="role === 'guest'"
+    ></textarea>
+    <button 
+      @click="addComment" 
+      class="mt-2 bg-secondary text-nowrap text-text rounded px-4 py-2 w-min"
+      :class="{ 'opacity-50 cursor-not-allowed': role === 'guest' }"
+    >
       Dodaj komentarz
     </button>
   </div>

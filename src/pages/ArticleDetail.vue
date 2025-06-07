@@ -20,12 +20,12 @@ const comments = ref<{
   content: string;
   created_at: string;
 }[]>([]);
-const role = ref('guest');
+const role = ref();
 const currentUser = ref();
 const isCurrentUser = ref(false);
 const isLiked = ref(false);
 
-const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
 onMounted(async () => {
   try {
@@ -61,6 +61,14 @@ const addComment = async (content: string) => {
 };
 
 const likeArticle = async () => {
+  if (role.value === 'guest') {
+    alertState.value = { 
+      message: 'Aby polubić artykuł, musisz się zalogować.', 
+      type: 'info' 
+    };
+    return;
+  }
+
   if (!article.value?.id) return;
 
   try {
@@ -95,12 +103,17 @@ const closeAlert = () => {
   <div class="flex bg-bg h-screen">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex-1 p-5">
-      <UserInfo :user="article?.author" :isCurrentUser="isCurrentUser" :showBio="false" />
+      <UserInfo :user="article?.author" :isCurrentUser="isCurrentUser" :showBio="false" :role="role" />
       <div class="font-semibold text-2xl text-text mb-4">{{ article?.title }}</div>
-      <div class=" text-text mb-4">{{ article?.content }}</div>
-      <button @click="likeArticle" :class="{isLiked}">
-        <div class="flex flex-row gap-2 bg-secondary p-2 rounded-sm  text-text">Polub artykuł<Heart :isLiked="isLiked" /></div>
-      </button>
+      <div class="text-text mb-4">{{ article?.content }}</div>
+      <div class="flex items-center gap-2 p-2 rounded-sm text-text-dimmed text-nowrap bg-secondary w-min">
+        <span>Polubień: {{ article?.likes || 0 }}</span>
+        <button @click="likeArticle" :class="{isLiked}">
+          <div class="flex flex-row gap-2 text-text">
+            <Heart :class="isLiked ? 'fill-like' : 'stroke-text fill-none'"/>
+          </div>
+        </button>
+      </div>
       <Comments :comments="comments" :article-id="article?.id" @comment-added="addComment" class="mt-3"/>
     </div>
   </div>

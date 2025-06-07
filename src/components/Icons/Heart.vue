@@ -2,13 +2,13 @@
 import { defineProps } from 'vue';
 
 const props = defineProps<{
-  isLiked?: boolean;
+  class?: string;
 }>();
 </script>
 
 <template>
   <svg
-    :class="{ 'fill-current text-like': isLiked, 'fill-none stroke-text ': !isLiked }"
+    :class="props.class"
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 24 24"
     width="24"
