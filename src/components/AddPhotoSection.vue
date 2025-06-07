@@ -3,11 +3,3 @@
     + Dodaj zdjęcie
   </div>
 </template>
-
-<script setup lang="ts">
-// Logika dodawania zdjęcia zostanie dodana w przyszłości
-</script>
-
-<style scoped>
-/* Tailwind handles most styling */
-</style> 
