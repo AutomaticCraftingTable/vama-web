@@ -77,10 +77,10 @@ onUnmounted(() => {
     <div v-if="comments.length === 0" class="text-gray-500">Brak komentarzy.</div>
     <div v-for="comment in comments" :key="comment.id" class="border-b border-gray-300 py-2 flex items-start gap-2 relative">
       <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-        <img :src="comment.logo ?? ''" alt="Author Logo" class="w-10 h-10 rounded-full object-cover" />
+        <img :src="comment.causer.logo ?? ''" alt="Author Logo" class="w-10 h-10 rounded-full object-cover" />
       </div>
       <div class="flex-1">
-        <p class="font-bold text-links">@{{ comment.causer }}</p>
+        <p class="font-bold text-links">@{{ comment.causer.nickname }}</p>
         <p class="text-text-dimmed">{{ comment.content }}</p>
         <div class="flex items-center text-text-dimmed text-sm">
           <span>{{ timeAgo(comment.created_at) }}</span>

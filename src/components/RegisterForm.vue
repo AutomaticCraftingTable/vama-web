@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue'
 import Eye from './Icons/Eye.vue'
+import axiosInstance from '@/axiosInstance'; // Import axiosInstance
+import Alert from '@/components/Alert.vue'; // Import komponentu Alert
+import { AxiosError } from 'axios'; // Import AxiosError
 
 const email = ref('')
 const password = ref('')
@@ -8,16 +11,45 @@ const showPassword = ref(false)
 const termsAccepted = ref(false)
 const isMobile = ref(false)
 
+// Zmienna stanu dla alertu
+const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   if (!termsAccepted.value) {
-    alert('Musisz zaakceptować regulamin przed rejestracją!')
-    return
+    // Zamiast alert(), użyj alertState
+    alertState.value = { message: 'Musisz zaakceptować regulamin przed rejestracją!', type: 'error' };
+    return;
   }
-}
+
+  try {
+    const response = await axiosInstance.post('/api/auth/register', {
+      email: email.value,
+      password: password.value,
+      // Jeśli API wymaga innych pól (np. nickname, potwierdzenie hasła), dodaj je tutaj
+    });
+
+    console.log('Rejestracja pomyślna:', response.data);
+    // Tutaj można przekierować użytkownika lub pokazać komunikat sukcesu
+    // router.push('/login'); // Przykład przekierowania na stronę logowania
+
+    alertState.value = { message: 'Rejestracja pomyślna!', type: 'success' }; // Wyświetl alert sukcesu
+
+  } catch (error) {
+    console.error('Błąd podczas rejestracji:', error); // Zachowano log w konsoli do debugowania
+    let errorMessage = 'Wystąpił błąd podczas rejestracji.';
+    // Sprawdzenie, czy błąd jest instancją AxiosError i ma odpowiednią strukturę
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error instanceof Error) {
+       errorMessage = error.message; // Użyj domyślnego komunikatu błędu JS
+    }
+    alertState.value = { message: errorMessage, type: 'error' };
+  }
+};
 
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 768
@@ -41,6 +73,10 @@ const inputClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-gray-200
 
 const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-black text-white font-medium rounded' : 'w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-text-primary font-bold border-none rounded-md text-base cursor-pointer mt-2 transition-colors',
 )
+
+const closeAlert = () => {
+  alertState.value = null;
+};
 </script>
 
 <template>
@@ -97,6 +133,13 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-black t
           albo <a href="#" class="text-gray-600">zaloguj się</a>
         </div>
       </form>
+        <Alert 
+          v-if="alertState"
+          :message="alertState.message"
+          :type="alertState.type"
+          :duration="5000"
+          @close="closeAlert"
+        />
     </div>
   </div>
 </template>

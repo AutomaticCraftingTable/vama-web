@@ -5,6 +5,7 @@ import UserInfo from '@/components/UserInfo.vue';
 import ArticleCard from '@/components/ArticleCard.vue';
 import { onMounted, ref } from "vue";
 import axiosInstance from "@/axiosInstance";
+import Alert from '@/components/Alert.vue';
 
 const role = ref('guest')
 const user = ref({
@@ -18,16 +19,18 @@ const user = ref({
 const articles = ref([])
 const isCurrentUser = ref(false)
 
+const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+
 onMounted(async () => {
   try {
     const { data } = await axiosInstance.get('/api/profile')
     user.value = {
-      account_id: data.profile.account_id,
-      logo: data.profile.logo,
-      nickname: data.profile.nickname,
-      followers: data.profile.followers,
-      bio: data.profile.description,
-      link: data.profile.link
+      account_id: data.account_id,
+      logo: data.logo,
+      nickname: data.nickname,
+      followers: data.followers,
+      bio: data.description,
+      link: data.link
     }
     articles.value = data.articles
     role.value = data.role
@@ -39,8 +42,13 @@ onMounted(async () => {
     console.log('profileAccountId', profileAccountId, 'myAccountId', myAccountId)
   } catch (error) {
     console.error('Błąd podczas pobierania danych:', error)
+    alertState.value = { message: 'Wystąpił błąd podczas ładowania danych profilu.', type: 'error' };
   }
 })
+
+const closeAlert = () => {
+  alertState.value = null;
+};
 </script>
 
 <template>
@@ -59,4 +67,11 @@ onMounted(async () => {
       </div>
     </div>
   </div>
+  <Alert 
+    v-if="alertState"
+    :message="alertState.message"
+    :type="alertState.type"
+    :duration="5000"
+    @close="closeAlert"
+  />
 </template>

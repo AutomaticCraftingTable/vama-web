@@ -25,11 +25,11 @@ const isActive = (path: string) => route.path === path;
 <template>
   <div v-if="!isMobile" class="flex flex-col gap-4 p-5 min-h-full rounded-sm border border-secondary  w-64">
     <router-link 
-      to="/AddArticle" 
+      to="/CreateArticle" 
       :class="[
-        'flex items-center gap-3 px-3 py-2 rounded-md transition-colors', isActive('/AddArticle') ? 'bg-secondary text-text' : 'text-text-dimmed hover:bg-secondary']"
+        'flex items-center gap-3 px-3 py-2 rounded-md transition-colors', isActive('/CreateArticle') ? 'bg-secondary text-text' : 'text-text-dimmed hover:bg-secondary']"
     >
-      <Add :class="isActive('/AddArticle') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-6 h-6"/>
+      <Add :class="isActive('/CreateArticle') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-6 h-6"/>
       <span>Dodaj artykuł</span>
     </router-link>
     <router-link 
@@ -61,9 +61,9 @@ const isActive = (path: string) => route.path === path;
           <Group :class="isActive('/Following') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-8 h-8" />
         </button>
       </router-link>
-      <router-link to="/AddArticle">
+      <router-link to="/CreateArticle">
         <button class="p-2 rounded-full">
-          <Add :class="isActive('/AddArticle') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-8 h-8" />
+          <Add :class="isActive('/CreateArticle') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-8 h-8" />
         </button>
       </router-link>
       <router-link to="/LikedArticles">

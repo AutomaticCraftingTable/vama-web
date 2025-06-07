@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import axiosInstance from '@/axiosInstance';
+import Alert from '@/components/Alert.vue';
+import { AxiosError } from 'axios';
 
 const props = defineProps<{
   articleId: number;
@@ -8,6 +10,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['comment-added']);
 const newComment = ref('');
+
+const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
 
 const addComment = async () => {
   if (!newComment.value.trim()) return;
@@ -27,10 +31,22 @@ const addComment = async () => {
       };
       emit('comment-added', addedComment);
       newComment.value = '';
+      alertState.value = { message: 'Komentarz został dodany.', type: 'success' };
     }
   } catch (error) {
     console.error('Błąd podczas dodawania komentarza:', error);
+    let errorMessage = 'Wystąpił błąd podczas dodawania komentarza.';
+    if (error instanceof AxiosError && error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    alertState.value = { message: errorMessage, type: 'error' };
   }
+};
+
+const closeAlert = () => {
+  alertState.value = null;
 };
 </script>
 
@@ -41,4 +57,11 @@ const addComment = async () => {
       Dodaj komentarz
     </button>
   </div>
+  <Alert 
+    v-if="alertState"
+    :message="alertState.message"
+    :type="alertState.type"
+    :duration="5000"
+    @close="closeAlert"
+  />
 </template>

@@ -6,6 +6,7 @@ import Profile from './pages/Profile.vue'
 import ArticleDetail from './pages/ArticleDetail.vue'
 import LikedArticles from './pages/LikedArticles.vue'
 import Subscribers from './pages/Subscribers.vue'
+import CreateArticle from './pages/CreateArticle.vue'
 
 const routes = [
   { path: '/login', component: Login },
@@ -16,6 +17,7 @@ const routes = [
   { path: '/article-detail/:id', component: ArticleDetail },
   { path: '/LikedArticles', component: LikedArticles },
   { path: '/Following', component: Subscribers },
+  { path: '/CreateArticle', component: CreateArticle },
 ]
 
 const router = createRouter({

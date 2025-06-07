@@ -26,7 +26,7 @@ const alert = ref<{ message: string; type: 'success' | 'error' } | null>(null);
 
 const handleReport = async () => {
   try {
-    await axiosInstance.post(`/api/profile/${props.user.account_id}/report`);
+    await axiosInstance.post(`/api/profile/${props.user.nickname}/report`);
     showMenu.value = false;
     alert.value = { message: 'Profil został zgłoszony', type: 'success' };
   } catch (error) {
@@ -36,7 +36,7 @@ const handleReport = async () => {
 }
 const router = useRouter();
 const handleProfileClick = () => {
-  router.push(`/profile/${props.user.account_id}`);
+  router.push(`/profile/${props.user.nickname}`);
 }
 
 const isSubscribed = ref(false);
@@ -51,10 +51,10 @@ watch(() => props.user, (newUser) => {
 const toggleSubscription = async () => {
   try {
     if (isSubscribed.value) {
-      await axiosInstance.delete(`/api/profile/${props.user.account_id}/subscribe`);
+      await axiosInstance.delete(`/api/profile/${props.user.nickname}/subscribe`);
       followers.value -= 1;
     } else {
-      await axiosInstance.post(`/api/profile/${props.user.account_id}/subscribe`);
+      await axiosInstance.post(`/api/profile/${props.user.nickname}/subscribe`);
       followers.value += 1;
     }
     isSubscribed.value = !isSubscribed.value;

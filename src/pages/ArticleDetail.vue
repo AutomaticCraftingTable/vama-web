@@ -7,6 +7,7 @@ import SideBar from '@/components/SideBarHome.vue';
 import Comments from '@/components/Comments.vue';
 import UserInfo from '@/components/UserInfo.vue';
 import Heart from '@/components/Icons/Heart.vue';
+import Alert from '@/components/Alert.vue';
 
 const route = useRoute();
 const article = ref();
@@ -22,52 +23,68 @@ const currentUser = ref();
 const isCurrentUser = ref(false);
 const isLiked = ref(false);
 
+const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+
 onMounted(async () => {
-  const { data } = await axiosInstance.get(`/api/article/${route.params.id}`);
-  article.value = data;
-  comments.value = data.comments;
-  role.value = data.profile.role;
-  currentUser.value = data.profile;
-  isCurrentUser.value = currentUser.value.account_id === data.author.account_id;
-  isLiked.value = data.isLiked;
+  try {
+    const { data } = await axiosInstance.get(`/api/article/${route.params.id}`);
+    article.value = data;
+    comments.value = data.comments;
+    role.value = data.profile.role;
+    currentUser.value = data.profile;
+    isCurrentUser.value = currentUser.value.account_id === data.author.account_id;
+    isLiked.value = data.isLiked;
+  } catch (error) {
+    console.error('Błąd podczas pobierania danych:', error);
+    alertState.value = { message: 'Wystąpił błąd podczas ładowania artykułu.', type: 'error' };
+  }
 });
 
 const addComment = async (content: string) => {
-  const res = await axiosInstance.post(`/api/article/${article.value.id}/comment`, { content });
-  const newComment = {
-    id: res.data.id,
-    causer: currentUser.value.name,
-    content,
-    logo: '',
-    created_at: new Date().toISOString(),
-  };
-  comments.value.unshift(newComment);
+  try {
+    const res = await axiosInstance.post(`/api/article/${article.value.id}/comment`, { content });
+    const newComment = {
+      id: res.data.id,
+      causer: currentUser.value.name,
+      content,
+      logo: '',
+      created_at: new Date().toISOString(),
+    };
+    comments.value.unshift(newComment);
+    alertState.value = { message: 'Komentarz został dodany.', type: 'success' };
+  } catch (error) {
+    console.error('Błąd podczas dodawania komentarza:', error);
+    alertState.value = { message: 'Wystąpił błąd podczas dodawania komentarza.', type: 'error' };
+  }
 };
 
 const likeArticle = async () => {
-  if (isLiked.value) {
+  if (!article.value?.id) return;
 
-    try {
+  try {
+    if (isLiked.value) {
       const response = await axiosInstance.delete(`/api/article/${article.value.id}/like`);
       if (response.status === 200) {
         article.value.likes -= 1;
         isLiked.value = false;
+        alertState.value = { message: 'Usunięto polubienie.', type: 'success' };
       }
-    } catch (error) {
-      console.error('Błąd podczas usuwania polubienia:', error);
-    }
-  } else {
-   
-    try {
+    } else {
       const response = await axiosInstance.post(`/api/article/${article.value.id}/like`);
       if (response.status === 200) {
         article.value.likes += 1;
         isLiked.value = true;
+        alertState.value = { message: 'Artykuł polubiony!', type: 'success' };
       }
-    } catch (error) {
-      console.error('Błąd podczas polubienia artykułu:', error);
     }
+  } catch (error) {
+    console.error('Błąd podczas polubienia/usunięcia polubienia:', error);
+    alertState.value = { message: 'Wystąpił błąd podczas zmiany statusu polubienia.', type: 'error' };
   }
+};
+
+const closeAlert = () => {
+  alertState.value = null;
 };
 </script>
 
@@ -85,4 +102,11 @@ const likeArticle = async () => {
       <Comments :comments="comments" :article-id="article?.id" @comment-added="addComment" class="mt-3"/>
     </div>
   </div>
+  <Alert 
+    v-if="alertState"
+    :message="alertState.message"
+    :type="alertState.type"
+    :duration="5000"
+    @close="closeAlert"
+  />
 </template>
