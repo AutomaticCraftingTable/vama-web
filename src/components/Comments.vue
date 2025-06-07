@@ -9,9 +9,11 @@ import Alert from './Alert.vue';
 const props = defineProps<{
   comments: {
     id: number;
-    causer: string;
+    causer:{
+      nickname: string;
+      logo: string;
+    };
     content: string;
-    logo: string;
     created_at: string;
   }[];
   articleId: number;

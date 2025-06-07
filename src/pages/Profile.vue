@@ -53,7 +53,7 @@ const closeAlert = () => {
 
 <template>
   <Header :role="role" />
-  <div class="flex h-screen">
+  <div class="flex h-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex flex-col w-full gap-4 mt-4">
       <UserInfo :user="user" :is-current-user="isCurrentUser" />

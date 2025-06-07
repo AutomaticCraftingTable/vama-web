@@ -71,7 +71,7 @@ const updateTags = (value: string) => { articleTags.value = value }
 
 <template>
   <Header></Header>
-  <div class="flex flex-row h-screen">
+  <div class="flex flex-row h-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex h-screen w-screen">
       <div class="flex-grow p-4 overflow-y-auto">

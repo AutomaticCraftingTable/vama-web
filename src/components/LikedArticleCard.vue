@@ -21,7 +21,7 @@ const handleRemove = (event: MouseEvent) => {
 };
 
 const handleClick = () => {
-  router.push(`/article/${props.article.id}`);
+  router.push(`/article-detail/${props.article.id}`);
 };
 </script>
 
