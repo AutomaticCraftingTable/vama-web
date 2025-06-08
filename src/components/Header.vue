@@ -61,9 +61,9 @@ const handleLogout = async () => {
     delete axiosInstance.defaults.headers.common['Authorization']
     router.push('/login')
   } catch (error) {
-    alertState.value = { 
-      message: 'Wystąpił błąd podczas wylogowywania.', 
-      type: 'error' 
+    alertState.value = {
+      message: 'Wystąpił błąd podczas wylogowywania.',
+      type: 'error'
     }
   }
 }
@@ -206,7 +206,7 @@ onMounted(() => {
         </div>
       </div>
     </header>
-    <Alert 
+    <Alert
       v-if="alertState"
       :message="alertState.message"
       :type="alertState.type"
