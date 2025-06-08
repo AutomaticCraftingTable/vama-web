@@ -1,24 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import HeaderFullNotLogged from '@/components/HeaderFullNotLogged.vue'
-import HeaderFullLogged from '@/components/HeaderFullLogged.vue'
+import { ref, onMounted } from 'vue'
+import Header from '@/components/Header.vue'
 import Article from '@/components/Article.vue'
 import SideBar from '@/components/SideBarHome.vue'
+import axiosInstance from '@/axiosInstance'
 
-// Symulacja stanu zalogowania
-const isLoggedIn = ref(true)
+const articles = ref([])
+const role = ref('guest')
 
-defineProps<{ msg?: string }>()
+onMounted(() => {
+  const url = '/api/home'
+  axiosInstance.get(url).then(response => {
+    articles.value = response.data.articles
+    role.value = response.data.role
+  }).catch(error => {
+    console.error('Błąd podczas pobierania danych:', error)
+  })
+})
 </script>
 
 <template>
-  <component :is="isLoggedIn ? HeaderFullLogged : HeaderFullNotLogged" />
-  
+  <Header></Header>
   <div class="flex h-screen">
-    <SideBar v-if="isLoggedIn" />
-    <div :class="['flex gap-7 mt-7', isLoggedIn ? 'ml-7' : 'ml-7']">
-      <Article />
-      <Article />
+    <SideBar v-if="role !== 'guest'" />
+    <div class="flex flex-row gap-7 mt-7">
+      <Article v-for="(article, index) in articles" :key="index" :article="article" />
     </div>
   </div>
 </template>
