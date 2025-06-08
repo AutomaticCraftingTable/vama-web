@@ -5,7 +5,7 @@ import Moon from './Icons/Moon.vue'
 import Lens from './Icons/Lens.vue'
 import Stack from './Icons/Stack.vue'
 import AuthButtons from './AuthButtons.vue'
-import axiosInstance from '@/axiosInstance'
+import axiosNewInstance from '@/axiosInstance'
 import { useRouter } from 'vue-router'
 import Alert from './Alert.vue'
 
@@ -54,11 +54,11 @@ const handleSettings = async () => {
 
 const handleLogout = async () => {
   try {
-    await axiosInstance.post('/api/auth/logout')
+    await axiosNewInstance.post('/api/auth/logout')
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('userRole')
-    delete axiosInstance.defaults.headers.common['Authorization']
+    delete axiosNewInstance.defaults.headers.common['Authorization']
     router.push('/login')
   } catch (error) {
     alertState.value = {
@@ -74,7 +74,7 @@ const handleSearch = async () => {
     return
   }
   try {
-    await axiosInstance.post('/api/home/search', { query: searchQuery.value })
+    await axiosNewInstance.post('/api/home/search', { query: searchQuery.value })
     router.push({
       path: '/search-results',
       query: { q: searchQuery.value }

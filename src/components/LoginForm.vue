@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Eye from './Icons/Eye.vue'
-import axiosInstance from '@/axiosInstance';
+import axiosNewInstance from '@/axiosInstance';
 import Alert from '@/components/Alert.vue';
 import { AxiosError } from 'axios';
 
@@ -43,29 +43,49 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary
 
 const handleLogin = async () => {
   try {
-    const response = await axiosInstance.post('/api/auth/login', {
+    const response = await axiosNewInstance.post('/api/auth/login', {
       email: email.value,
       password: password.value,
     });
+
+    if (!response.data || !response.data.token || !response.data.user) {
+      throw new Error('Nieprawidłowa odpowiedź z serwera');
+    }
+
+    if (typeof response.data.token !== 'string' || response.data.token.length < 10) {
+      throw new Error('Nieprawidłowy token');
+    }
 
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));
     localStorage.setItem('userRole', response.data.user.role);
     
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+
+    axiosNewInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
     alertState.value = { message: 'Logowanie pomyślne!', type: 'success' };
-    router.push('/');
+    
+    setTimeout(() => {
+      router.push('/');
+    }, 1000);
   } catch (error) {
     let errorMessage = 'Wystąpił błąd podczas logowania.';
 
-    if (error instanceof AxiosError && error.response?.data?.message) {
-      errorMessage = error.response.data.message;
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 401) {
+        errorMessage = 'Nieprawidłowy email lub hasło.';
+      } else if (error.response?.status === 422) {
+        errorMessage = 'Nieprawidłowe dane logowania.';
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
     } else if (error instanceof Error) {
       errorMessage = error.message;
     }
 
     alertState.value = { message: errorMessage, type: 'error' };
+
+    password.value = '';
   }
 };
 

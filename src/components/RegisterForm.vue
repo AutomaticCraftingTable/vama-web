@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue'
 import Eye from './Icons/Eye.vue'
-import axiosInstance from '@/axiosInstance';
+import { axiosNewInstance } from '@/axiosInstance';
 import Alert from '@/components/Alert.vue';
 import { AxiosError } from 'axios';
 
@@ -23,23 +23,57 @@ const handleRegister = async () => {
     return;
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    alertState.value = { message: 'Podaj poprawny adres email!', type: 'error' };
+    return;
+  }
+
+  if (password.value.length < 8) {
+    alertState.value = { message: 'Hasło musi mieć minimum 8 znaków!', type: 'error' };
+    return;
+  }
+
   try {
-    const response = await axiosInstance.post('/api/auth/register', {
+    const response = await axiosNewInstance.post('/api/auth/register', {
       email: email.value,
       password: password.value,
+      password_confirmation: password.value
     });
 
-    console.log('Rejestracja pomyślna:', response.data);
+    const userData = {
+      email: email.value,
+      role: 'user',
+      profile: null
+    };
+
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('userRole', 'user');
+    localStorage.setItem('userEmail', email.value);
 
     alertState.value = { message: 'Rejestracja pomyślna!', type: 'success' };
+
+    emit('registration-success');
 
   } catch (error) {
     console.error('Błąd podczas rejestracji:', error);
     let errorMessage = 'Wystąpił błąd podczas rejestracji.';
-    if (error instanceof AxiosError && error.response?.data?.message) {
-      errorMessage = error.response.data.message;
+    
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 422) {
+        const validationErrors = error.response.data.errors as Record<string, string[]>;
+        if (validationErrors) {
+          const firstErrors = Object.values(validationErrors).map(errors => errors[0]);
+          errorMessage = firstErrors.join(', ');
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
     } else if (error instanceof Error) {
-       errorMessage = error.message;
+      errorMessage = error.message;
     }
     alertState.value = { message: errorMessage, type: 'error' };
   }
@@ -73,35 +107,6 @@ const closeAlert = () => {
 };
 
 const emit = defineEmits(['registration-success'])
-
-const formData = ref({
-  email: '',
-  password: '',
-  password_confirmation: ''
-})
-
-const error = ref('')
-const success = ref(false)
-
-const handleSubmit = async () => {
-  try {
-    const response = await axiosInstance.post('/api/auth/register', formData.value)
-    const { token, user } = response.data
-
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(user))
-    localStorage.setItem('userRole', 'user')
-    localStorage.setItem('userEmail', user.email)
-
-    success.value = true
-    error.value = ''
-    
-    emit('registration-success')
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Wystąpił błąd podczas rejestracji'
-    success.value = false
-  }
-}
 </script>
 
 <template>
@@ -110,10 +115,10 @@ const handleSubmit = async () => {
       <h1 :class="isMobile ? 'text-xl font-medium text-text' : 'text-2xl font-semibold text-text m-0 mb-2'">Witamy w VAMA</h1>
       <p class="text-sm text-text-dimmed mb-6">Rozpocznij pisanie swoich historii</p>
 
-      <form @submit.prevent="handleSubmit" class="w-full h-3/4 flex flex-col gap-4">
+      <form @submit.prevent="handleRegister" class="w-full h-3/4 flex flex-col gap-4">
         <input
             type="email"
-            v-model="formData.email"
+            v-model="email"
             placeholder="Email"
             required
             :class="inputClass"
@@ -122,7 +127,7 @@ const handleSubmit = async () => {
         <div class="relative">
           <input
               :type="showPassword ? 'text' : 'password'"
-              v-model="formData.password"
+              v-model="password"
               placeholder="Hasło"
               required
               :class="inputClass"
