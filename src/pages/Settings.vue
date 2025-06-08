@@ -9,7 +9,7 @@ const role = ref(localStorage.getItem('userRole') || 'guest')
 
 <template>
   <Header :role="role"></Header>
-  <div class="flex h-full bg-bg">
+  <div class="flex min-h-screen bg-bg">
     <SideBar />
     <EditProfile />
   </div>

@@ -23,15 +23,31 @@ const addComment = async () => {
     return;
   }
 
-  if (!newComment.value.trim()) return;
+  const storedUserData = localStorage.getItem('user')
+  if (!storedUserData) {
+    alertState.value = { 
+      message: 'Nie znaleziono danych użytkownika.', 
+      type: 'error' 
+    };
+    return;
+  }
 
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
+  const userData = JSON.parse(storedUserData);
+  if (!userData.profile?.nickname) {
+    alertState.value = { 
+      message: 'Aby dodać komentarz, musisz utworzyć profil.', 
+      type: 'info' 
+    };
+    return;
+  }
+
+  if (!newComment.value.trim()) return;
 
   const localComment = {
     id: Date.now(),
     causer: {
-      nickname: userData.nickname,
-      logo: userData.logo,
+      nickname: userData.profile.nickname,
+      logo: userData.profile.logo || '',
     },
     content: newComment.value,
     created_at: new Date().toISOString(),

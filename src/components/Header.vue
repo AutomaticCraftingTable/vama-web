@@ -19,7 +19,7 @@ const searchQuery = ref('')
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const theme = ref(prefersDark ? 'dark' : 'light')
 const isSmallScreen = ref(window.innerWidth < 768)
-const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 const userLogo = ref<string | null>(null)
 
 window.addEventListener('resize', () => {
@@ -68,6 +68,22 @@ const handleLogout = async () => {
   }
 }
 
+const handleSearch = async () => {
+  if (!searchQuery.value.trim()) {
+    alertState.value = { message: 'Wprowadź frazę do wyszukania.', type: 'info' }
+    return
+  }
+  try {
+    await axiosInstance.post('/api/home/search', { query: searchQuery.value })
+    router.push({
+      path: '/search-results',
+      query: { q: searchQuery.value }
+    })
+  } catch (error) {
+    alertState.value = { message: 'Wystąpił błąd podczas wyszukiwania. Spróbuj ponownie.', type: 'error' }
+  }
+}
+
 onMounted(() => {
   const saved = localStorage.getItem('theme')
   if (saved === 'dark' || saved === 'light') {
@@ -78,7 +94,7 @@ onMounted(() => {
     const storedUserData = localStorage.getItem('user')
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData)
-      userLogo.value = parsedData.logo || null
+      userLogo.value = parsedData.profile?.logo || null
     }
   } catch (error) {
     alertState.value = {
@@ -98,7 +114,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="w-full flex flex-col bg-bg">
+  <div class="max-w-screen flex flex-col bg-bg">
     <header class="w-full py-2.5">
       <div class="flex items-center justify-between w-full px-6">
         <div><a href="/"><img src="/Logo.png"></a></div>
@@ -107,8 +123,7 @@ onMounted(() => {
             <span class="mr-2 px-3.5">
               <Lens/>
             </span>
-            <input type="text" placeholder="Szukaj..." v-model="searchQuery"
-                   class="border-none bg-transparent w-full outline-none text-base text-text transition duration-150 ease-in-out"/>
+            <input type="text" placeholder="Szukaj..." v-model="searchQuery" @keydown.enter="handleSearch" class="border-none bg-transparent w-full outline-none text-base transition duration-150 ease-in-out"/>
           </div>
           <div v-if="isSmallScreen" class="flex items-center justify-end text-text">
             <span>

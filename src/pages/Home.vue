@@ -9,6 +9,7 @@ import Alert from '@/components/Alert.vue'
 const articles = ref([])
 const role = ref(localStorage.getItem('userRole') || 'guest')
 
+
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 
 onMounted(() => {
@@ -28,7 +29,7 @@ const closeAlert = () => {
 
 <template>
   <Header :role="role"></Header>
-  <div class="md:flex h-screen w-screen bg-bg">
+  <div class="md:flex min-h-screen max-w-screen bg-bg">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex-1 flex justify-center">
       <div class="flex flex-col flex-wrap justify-center items-start gap-7 mt-7 px-4 md:flex-row md:px-0 max-w-[1200px]">

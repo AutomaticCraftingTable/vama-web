@@ -60,9 +60,24 @@ const handleGuestAction = () => {
   };
 };
 
+const isCommentOwner = (comment: any) => {
+  const storedUserData = localStorage.getItem('user');
+  const userData = storedUserData ? JSON.parse(storedUserData) : null;
+  return userData?.account_id === comment.causer.account_id;
+};
+
 const handleReport = async (commentId: number) => {
   if (props.role === 'guest') {
     handleGuestAction();
+    return;
+  }
+
+  const storedUserData = localStorage.getItem('user')
+  if (!storedUserData || !JSON.parse(storedUserData).profile?.nickname) {
+    alert.value = { 
+      message: 'Aby wykonać tę akcję, musisz utworzyć profil.', 
+      type: 'info' 
+    };
     return;
   }
 
@@ -119,7 +134,7 @@ onUnmounted(() => {
           <span>{{ timeAgo(comment.created_at) }}</span>
         </div>
       </div>
-      <div class="relative">
+      <div class="relative" v-if="!isCommentOwner(comment)">
         <button 
           @click.stop="toggleMenu(comment.id)" 
           class="p-2 hover:bg-secondary rounded-full"
@@ -134,8 +149,8 @@ onUnmounted(() => {
             class="flex items-center gap-2 w-full px-4 py-2 text-text hover:bg-secondary" 
             @click.stop="handleReport(comment.id)"
           >
-            <Flag class="fill-none stroke-text size-6"/>
-            Zgłoś komentarz
+            <Flag class="fill-none stroke-text size-5" />
+            Zgłoś
           </button>
         </div>
       </div>

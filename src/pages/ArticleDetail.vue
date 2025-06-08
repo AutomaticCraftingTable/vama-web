@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import axiosInstance from '@/axiosInstance';
 import Header from '@/components/Header.vue';
 import SideBar from '@/components/SideBar.vue';
@@ -10,18 +10,20 @@ import Heart from '@/components/Icons/Heart.vue';
 import Alert from '@/components/Alert.vue';
 
 const route = useRoute();
-const article = ref();
+const router = useRouter();
+const article = ref<any>(null);
 const comments = ref<{
   id: number;
   causer:{
     nickname: string;
     logo: string;
+    account_id: number;
   };
   content: string;
   created_at: string;
 }[]>([]);
 const role = ref(localStorage.getItem('userRole') || 'guest');
-const currentUser = ref();
+const currentUser = ref<any>(null);
 const isCurrentUser = ref(false);
 const isLiked = ref(false);
 
@@ -30,14 +32,28 @@ const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } |
 onMounted(async () => {
   try {
     const { data } = await axiosInstance.get(`/api/article/${route.params.id}`);
+    if (!data) {
+      throw new Error('Nie znaleziono artykułu');
+    }
+
     article.value = data;
-    comments.value = data.comments;
+    comments.value = data.comments || [];
     currentUser.value = data.profile;
-    isCurrentUser.value = currentUser.value.account_id === data.author.account_id;
-    isLiked.value = data.isLiked;
+    
+    const storedUserData = localStorage.getItem('user');
+    const userData = storedUserData ? JSON.parse(storedUserData) : null;
+    isCurrentUser.value = userData?.account_id === data.author?.account_id;
+    
+    isLiked.value = data.isLiked || false;
   } catch (error) {
     console.error('Błąd podczas pobierania danych:', error);
-    alertState.value = { message: 'Wystąpił błąd podczas ładowania artykułu.', type: 'error' };
+    alertState.value = { 
+      message: 'Wystąpił błąd podczas ładowania artykułu. Spróbuj odświeżyć stronę.', 
+      type: 'error' 
+    };
+    setTimeout(() => {
+      router.push('/');
+    }, 3000);
   }
 });
 
@@ -68,20 +84,29 @@ const likeArticle = async () => {
     return;
   }
 
+  const storedUserData = localStorage.getItem('user')
+  if (!storedUserData || !JSON.parse(storedUserData).profile?.nickname) {
+    alertState.value = { 
+      message: 'Aby polubić artykuł, musisz utworzyć profil.', 
+      type: 'info' 
+    };
+    return;
+  }
+
   if (!article.value?.id) return;
 
   try {
     if (isLiked.value) {
       const response = await axiosInstance.delete(`/api/article/${article.value.id}/like`);
       if (response.status === 200) {
-        article.value.likes -= 1;
+        article.value.likes = (article.value.likes || 0) - 1;
         isLiked.value = false;
         alertState.value = { message: 'Usunięto polubienie.', type: 'success' };
       }
     } else {
       const response = await axiosInstance.post(`/api/article/${article.value.id}/like`);
       if (response.status === 200) {
-        article.value.likes += 1;
+        article.value.likes = (article.value.likes || 0) + 1;
         isLiked.value = true;
         alertState.value = { message: 'Artykuł polubiony!', type: 'success' };
       }
@@ -102,18 +127,23 @@ const closeAlert = () => {
   <div class="flex bg-bg h-screen">
     <SideBar v-if="role !== 'guest'" />
     <div class="flex-1 p-5">
-      <UserInfo :user="article?.author" :isCurrentUser="isCurrentUser" :showBio="false" :role="role" />
-      <div class="font-semibold text-2xl text-text mb-4">{{ article?.title }}</div>
-      <div class="text-text mb-4">{{ article?.content }}</div>
-      <div class="flex items-center gap-2 p-2 rounded-sm text-text-dimmed text-nowrap bg-secondary w-min">
-        <span>Polubień: {{ article?.likes || 0 }}</span>
-        <button @click="likeArticle" :class="{isLiked}">
-          <div class="flex flex-row gap-2 text-text">
-            <Heart :class="isLiked ? 'fill-like' : 'stroke-text fill-none'"/>
-          </div>
-        </button>
+      <div v-if="article">
+        <UserInfo :user="article.author" :isCurrentUser="isCurrentUser" :showBio="false" :role="role" />
+        <div class="font-semibold text-2xl text-text mb-4">{{ article.title }}</div>
+        <div class="text-text mb-4">{{ article.content }}</div>
+        <div class="flex items-center gap-2 p-2 rounded-sm text-text-dimmed text-nowrap bg-secondary w-min">
+          <span>Polubień: {{ article.likes || 0 }}</span>
+          <button @click="likeArticle" :class="{isLiked}">
+            <div class="flex flex-row gap-2 text-text">
+              <Heart :class="isLiked ? 'fill-like' : 'stroke-text fill-none'"/>
+            </div>
+          </button>
+        </div>
+        <Comments :comments="comments" :article-id="article.id" :role="role" class="mt-3"/>
       </div>
-      <Comments :comments="comments" :article-id="article?.id" @comment-added="addComment" class="mt-3"/>
+      <div v-else class="flex items-center justify-center h-full">
+        <p class="text-text-dimmed">Ładowanie artykułu...</p>
+      </div>
     </div>
   </div>
   <Alert 

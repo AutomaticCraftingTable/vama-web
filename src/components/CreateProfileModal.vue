@@ -10,14 +10,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{'close': [], 'profileCreated': []}>()
 
-const username = ref('')
+const nickname = ref('')
 const description = ref('')
 const logoFile = ref<File | null>(null)
 const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
-    username.value = ''
+    nickname.value = ''
     description.value = ''
     logoFile.value = null
     alert.value = null
@@ -32,7 +32,7 @@ const handleLogoChange = (event: Event) => {
 }
 
 const handleSubmit = async () => {
-  if (!username.value.trim()) {
+  if (!nickname.value.trim()) {
     alert.value = {
       message: 'Nazwa użytkownika jest wymagana.',
       type: 'error'
@@ -41,7 +41,7 @@ const handleSubmit = async () => {
   }
 
   const formData = new FormData()
-  formData.append('username', username.value)
+  formData.append('nickname', nickname.value)
   if (description.value.trim()) {
     formData.append('description', description.value)
   }
@@ -50,11 +50,24 @@ const handleSubmit = async () => {
   }
 
   try {
-    await axiosInstance.post('/api/profile', formData, {
+    const response = await axiosInstance.post('/api/profile', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
+    
+    const storedUserData = localStorage.getItem('user')
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData)
+      parsedData.profile = {
+        ...parsedData.profile,
+        nickname: nickname.value,
+        description: description.value,
+        logo: response.data.logo || null
+      }
+      localStorage.setItem('user', JSON.stringify(parsedData))
+    }
+
     alert.value = {
       message: 'Profil został pomyślnie utworzony!',
       type: 'success'
@@ -82,8 +95,8 @@ const handleClose = () => {
       <h2 class="text-2xl font-semibold text-text mb-6">Utwórz Profil</h2>
       <form @submit.prevent="handleSubmit">
         <div class="mb-4">
-          <label for="username" class="block text-text text-sm font-bold mb-2">Nazwa użytkownika:</label>
-          <input type="text" id="username" v-model="username" required class="shadow appearance-none border rounded w-full py-2 px-3 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"/>
+          <label for="nickname" class="block text-text text-sm font-bold mb-2">Nazwa użytkownika:</label>
+          <input type="text" id="nickname" v-model="nickname" required class="shadow appearance-none border rounded w-full py-2 px-3 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"/>
         </div>
         <div class="mb-4">
           <label for="description" class="block text-text text-sm font-bold mb-2">Opis (opcjonalnie):</label>

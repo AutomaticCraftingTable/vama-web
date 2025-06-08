@@ -25,12 +25,21 @@ const closeAlert = () => {
 
 const fetchProfileData = async () => {
   try {
-    const response = await axiosInstance.get('/api/profile')
-    profileData.value = response.data
-    if (profileData.value && profileData.value.nickname) {
-      currentNickname.value = profileData.value.nickname
-      currentDescription.value = profileData.value.description || ''
-      currentLogo.value = profileData.value.logo
+    const storedUserData = localStorage.getItem('user')
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData)
+      profileData.value = {
+        nickname: parsedData.profile?.nickname || null,
+        description: parsedData.profile?.description || null,
+        logo: parsedData.profile?.logo || null,
+        email: parsedData.email || null
+      }
+      
+      if (profileData.value && profileData.value.nickname) {
+        currentNickname.value = profileData.value.nickname
+        currentDescription.value = profileData.value.description || ''
+        currentLogo.value = profileData.value.logo
+      }
     }
   } catch (error) {
     alertState.value = {
@@ -56,7 +65,7 @@ const handleProfileCreated = () => {
     message: 'Profil został pomyślnie utworzony.',
     type: 'success'
   }
-  fetchProfileData()
+  
 }
 
 const handleLogoChange = (event: Event) => {
@@ -146,8 +155,9 @@ const handleDeleteProfile = async () => {
 
   try {
     await axiosInstance.delete('/api/profile')
+    localStorage.removeItem('user')
     alertState.value = { message: 'Profil został pomyślnie usunięty.', type: 'success' }
-    fetchProfileData()
+    router.go(0)
   } catch (error) {
     alertState.value = {
       message: 'Wystąpił błąd podczas usuwania profilu. Spróbuj ponownie.',
@@ -297,10 +307,10 @@ const handleDeleteAccount = async () => {
     <div class="border-t border-secondary pt-6">
       <h2 class="text-base font-bold text-text-dimmed mb-4">Strefa niebezpieczna</h2>
       <div class="flex gap-2">
-        <button @click="handleDeleteProfile" tabindex="0" class=" bg-danger text-text-primary px-5 py-3 rounded-sm font-bold text-lg hover:bg-red-700 cursor-pointer">
+        <button v-if="profileData && profileData.nickname" @click="handleDeleteProfile" tabindex="0" class="bg-danger text-text-primary px-5 py-3 rounded-sm font-bold text-lg hover:bg-red-700 cursor-pointer">
           Usuń profil
         </button>
-        <button @click="handleDeleteAccount" tabindex="0" class=" bg-danger text-text-primary px-5 py-3 rounded-sm font-bold text-lg hover:bg-red-700 cursor-pointer">
+        <button @click="handleDeleteAccount" tabindex="0" class="bg-danger text-text-primary px-5 py-3 rounded-sm font-bold text-lg hover:bg-red-700 cursor-pointer">
           Usuń konto
         </button>
       </div>
