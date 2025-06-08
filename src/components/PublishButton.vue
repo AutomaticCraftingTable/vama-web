@@ -13,7 +13,6 @@ import { defineEmits } from 'vue';
 const emit = defineEmits(['publish']);
 
 const handlePublish = () => {
-  console.log('Prycisk Opublikuj kliknięty');
   emit('publish');
 };
 </script>

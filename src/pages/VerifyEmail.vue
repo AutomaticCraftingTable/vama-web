@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Header from '@/components/Header.vue'
 import axiosInstance from '@/axiosInstance'
 
-const role = ref(localStorage.getItem('userRole') || 'guest')
 const email = ref(localStorage.getItem('userEmail') || '')
 
 const handleResendVerification = async () => {
@@ -18,22 +16,21 @@ const handleResendVerification = async () => {
 </script>
 
 <template>
-  <Header :role="role" />
-  <div class="min-h-screen bg-bg flex items-center justify-center">
-    <div class="bg-secondary p-8 rounded-lg shadow-lg max-w-md w-full">
-      <h1 class="text-2xl font-bold text-text mb-4">Weryfikacja adresu email</h1>
-      <p class="text-text-secondary mb-6">
-        Dziękujemy za rejestrację! Wysłaliśmy link weryfikacyjny na adres: <span class="font-semibold">{{ email }}</span>
-      </p>
-      <p class="text-text-secondary mb-6">
-        Prosimy o sprawdzenie skrzynki email i kliknięcie w link weryfikacyjny, aby aktywować swoje konto.
-      </p>
-      <button 
-        @click="handleResendVerification"
-        class="w-full bg-primary text-white py-2 px-4 rounded hover:bg-primary/90 transition-colors"
-      >
+  <div class="flex flex-1 justify-center items-center min-h-screen bg-bg">
+    <div class="flex flex-col bg-bg text-text gap-12 py-12 px-10">
+      <div>
+        <p class="font-bold text-3xl">Weryfikacja adresu email</p>
+      </div>
+      <div>
+        <div>Już prawie koniec! Został ostatni krok</div>
+        <div class="font-bold text-2xl">{{ email }}</div>
+      </div>
+      <div>
+        <div>Prosimy o sprawdzenie skrzynki email i kliknięcie w link weryfikacyjny, aby aktywować swoje konto.</div>
+      </div>
+      <button @click="handleResendVerification" class="bg-primary hover:bg-primary-hover text-text-primary font-bold text-xl cursor-pointer py-6 px-14 rounded-sm">
         Wyślij link ponownie
       </button>
     </div>
   </div>
-</template> 
+</template>

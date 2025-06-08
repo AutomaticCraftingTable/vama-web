@@ -33,4 +33,3 @@ const handleAddTag = () => {
   currentInputTag.value = '';
 };
 </script>
-le>

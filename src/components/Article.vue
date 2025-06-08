@@ -34,13 +34,13 @@ const handleArticleClick = () => {
           <p class="text-text">
             <div class="cursor-pointer" @click.prevent="handleProfileClick">{{ article.author.nickname }}</div>
           </p>
-          <p class="text-text-secondary cursor-default">{{ article.author.followers }} obserwujących</p>
+          <p class="text-text-secondary cursor-default">{{ article.author.followers }} subskrybujących</p>
         </div>
       </div>
       <div>
         <p class="text-text font-bold underline cursor-pointer" @click.prevent="handleArticleClick">{{ article.title }}</p>
       </div>
-      <div class="flex justify-center h-[220px]"><img :src="article.thumbnail" alt="Logo" class="w-full h-full object-cover"/></div>
+      <div class="flex justify-center h-[220px]"><img :src="article.thumbnail" class="w-full h-full object-cover"/></div>
       <Tag class="cursor-default" :tags="article.tags" />
     </div>
   </div>

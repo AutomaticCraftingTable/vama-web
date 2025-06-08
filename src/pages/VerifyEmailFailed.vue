@@ -1,11 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import Header from '@/components/Header.vue'
 import axiosInstance from '@/axiosInstance'
 
 const router = useRouter()
-const role = ref(localStorage.getItem('userRole') || 'guest')
 
 const handleResendVerification = async () => {
   try {
@@ -21,29 +18,20 @@ const handleGoToHome = () => {
   router.push('/')
 }
 </script>
-
 <template>
-  <Header :role="role" />
-  <div class="min-h-screen bg-bg flex items-center justify-center">
-    <div class="bg-secondary p-8 rounded-lg shadow-lg max-w-md w-full">
-      <h1 class="text-2xl font-bold text-text mb-4">Weryfikacja nie powiodła się</h1>
-      <p class="text-text-secondary mb-6">
-        Wystąpił problem podczas weryfikacji Twojego adresu email. Link weryfikacyjny mógł wygasnąć lub być nieprawidłowy.
-      </p>
-      <div class="flex flex-col gap-4">
-        <button 
-          @click="handleResendVerification"
-          class="w-full bg-primary text-white py-2 px-4 rounded hover:bg-primary/90 transition-colors"
-        >
+  <div class="flex flex-1 justify-center items-center min-h-screen bg-bg">
+    <div class="flex flex-col bg-bg gap-12 py-12 px-10">
+      <div class="bg-failure rounded-sm p-6">
+        <p class="text-text-failure font-bold text-3xl">Oops...</p>
+      </div>
+        <div class="font-bold">Weryfikacja nie powiodła się...</div>
+    <div>
+        <div>Wystąpił problem podczas weryfikacji Twojego adresu email.</div>
+        <div>Link weryfikacyjny mógł wygasnąć lub być nieprawidłowy.</div>
+    </div>
+        <button @click="handleResendVerification" class="bg-primary hover:bg-primary-hover text-text-primary font-bold text-xl cursor-pointer py-6 px-14 rounded-sm">
           Wyślij link ponownie
         </button>
-        <button 
-          @click="handleGoToHome"
-          class="w-full bg-secondary text-text py-2 px-4 rounded hover:bg-secondary/90 transition-colors border border-primary"
-        >
-          Wróć na stronę główną
-        </button>
-      </div>
     </div>
   </div>
-</template> 
+</template>

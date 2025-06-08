@@ -6,7 +6,7 @@ import axiosInstance from '@/axiosInstance'
 
 const router = useRouter()
 const route = useRoute()
-const role = ref(localStorage.getItem('userRole') || 'guest')
+const email = ref(localStorage.getItem('userEmail') || '')
 
 onMounted(async () => {
   const id = route.params.id
@@ -23,18 +23,17 @@ onMounted(async () => {
   }
 })
 </script>
-
 <template>
-  <Header :role="role" />
-  <div class="min-h-screen bg-bg flex items-center justify-center">
-    <div class="bg-secondary p-8 rounded-lg shadow-lg max-w-md w-full">
-      <h1 class="text-2xl font-bold text-text mb-4">Weryfikacja zakończona sukcesem!</h1>
-      <p class="text-text-secondary mb-6">
-        Twój adres email został pomyślnie zweryfikowany. Za chwilę zostaniesz przekierowany na stronę główną.
-      </p>
-      <div class="flex justify-center">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  <div class="flex flex-1 justify-center items-center min-h-screen bg-bg">
+    <div class="flex flex-col bg-bg gap-12 py-12 px-10">
+      <div class="bg-Success rounded-sm p-6">
+        <p class="text-text-Success font-bold text-3xl">Weryfikacja zakończona sukcesem!</p>
       </div>
+        <div class="font-bold">Twój adres email został pomyślnie zweryfikowany.<br>Za chwilę zostaniesz przekierowany na stronę główną.</div>
+    <div>
+        <div>Możesz teraz korzystać z VAMA</div>
+        <div class="font-bold">{{ email }}</div>
+    </div>
     </div>
   </div>
-</template> 
+</template>

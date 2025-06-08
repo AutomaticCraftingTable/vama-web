@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue'
 import Eye from './Icons/Eye.vue'
-import { axiosNewInstance } from '@/axiosInstance';
+import axiosInstance  from '@/axiosInstance';
 import Alert from '@/components/Alert.vue';
 import { AxiosError } from 'axios';
 
@@ -35,7 +35,7 @@ const handleRegister = async () => {
   }
 
   try {
-    const response = await axiosNewInstance.post('/api/auth/register', {
+    const response = await axiosInstance.post('/api/auth/register', {
       email: email.value,
       password: password.value,
       password_confirmation: password.value

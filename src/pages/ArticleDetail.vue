@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import axiosInstance from '@/axiosInstance';
+import axiosNewInstance from '@/axiosInstance';
 import Header from '@/components/Header.vue';
 import SideBar from '@/components/SideBar.vue';
 import Comments from '@/components/Comments.vue';
@@ -31,7 +31,7 @@ const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } |
 
 onMounted(async () => {
   try {
-    const { data } = await axiosInstance.get(`/api/article/${route.params.id}`);
+    const { data } = await axiosNewInstance.get(`/api/article/${route.params.id}`);
     if (!data) {
       throw new Error('Nie znaleziono artykułu');
     }
@@ -59,7 +59,7 @@ onMounted(async () => {
 
 const addComment = async (content: string) => {
   try {
-    const res = await axiosInstance.post(`/api/article/${article.value.id}/comment`, { content });
+    const res = await axiosNewInstance.post(`/api/article/${article.value.id}/comment`, { content });
     const newComment = {
       id: res.data.id,
       causer: currentUser.value.name,
@@ -97,14 +97,14 @@ const likeArticle = async () => {
 
   try {
     if (isLiked.value) {
-      const response = await axiosInstance.delete(`/api/article/${article.value.id}/like`);
+      const response = await axiosNewInstance.delete(`/api/article/${article.value.id}/like`);
       if (response.status === 200) {
         article.value.likes = (article.value.likes || 0) - 1;
         isLiked.value = false;
         alertState.value = { message: 'Usunięto polubienie.', type: 'success' };
       }
     } else {
-      const response = await axiosInstance.post(`/api/article/${article.value.id}/like`);
+      const response = await axiosNewInstance.post(`/api/article/${article.value.id}/like`);
       if (response.status === 200) {
         article.value.likes = (article.value.likes || 0) + 1;
         isLiked.value = true;

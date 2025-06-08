@@ -5,7 +5,7 @@ const props = defineProps<{
   tags: string
 }>()
 
-const tagArray = props.tags.split('#').filter(tag => tag.trim() !== '').map(tag => `#${tag.trim()}`)
+const tagArray = props.tags.split(',').filter(tag => tag.trim() !== '').map(tag => `#${tag.trim()}`)
 </script>
 
 <template>

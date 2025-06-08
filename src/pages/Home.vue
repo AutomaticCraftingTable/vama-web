@@ -9,7 +9,6 @@ import Alert from '@/components/Alert.vue'
 const articles = ref([])
 const role = ref(localStorage.getItem('userRole') || 'guest')
 
-
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 
 onMounted(() => {

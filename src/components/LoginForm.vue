@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Eye from './Icons/Eye.vue'
-import axiosNewInstance from '@/axiosInstance';
+import axiosInstance from '@/axiosInstance';
 import Alert from '@/components/Alert.vue';
 import { AxiosError } from 'axios';
 
@@ -43,7 +43,7 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary
 
 const handleLogin = async () => {
   try {
-    const response = await axiosNewInstance.post('/api/auth/login', {
+    const response = await axiosInstance.post('/api/auth/login', {
       email: email.value,
       password: password.value,
     });
@@ -58,10 +58,10 @@ const handleLogin = async () => {
 
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(response.data.user));
-    localStorage.setItem('userRole', response.data.user.role);
+    localStorage.setItem('userRole', "guest");
     
 
-    axiosNewInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
 
     alertState.value = { message: 'Logowanie pomyślne!', type: 'success' };
     

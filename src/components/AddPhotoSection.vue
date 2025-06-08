@@ -67,7 +67,7 @@ const removePhoto = () => {
         />
         <button 
           @click="removePhoto"
-          class="absolute top-2 right-2 bg-danger text-white p-2 rounded-full hover:bg-danger-hover transition-colors"
+          class="absolute top-2 right-2 bg-danger text-white px-2 rounded-sm hover:bg-danger-hover transition-colors"
         >
           ×
         </button>
