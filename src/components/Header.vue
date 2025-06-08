@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import { ref } from 'vue'
 import Sun from './Icons/Sun.vue'
 import Moon from './Icons/Moon.vue'
 import Lens from './Icons/Lens.vue'
 import Stack from './Icons/Stack.vue'
 import AuthButtons from './AuthButtons.vue'
-import axios from 'axios'
 
+defineProps<{ role: string }>()
 
-const role = ref()
 const isDropdownOpen = ref(false)
 const searchQuery = ref('')
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -37,33 +36,23 @@ const closeDropdown = () => {
   isDropdownOpen.value = false
 }
 
-onMounted(() => {
-  const saved = localStorage.getItem('theme')
-  if (saved === 'dark' || saved === 'light') {
-    setTheme(saved)
+const saved = localStorage.getItem('theme')
+if (saved === 'dark' || saved === 'light') {
+  setTheme(saved)
+}
+
+document.addEventListener('click', (e) => {
+  const dropdown = document.getElementById('user-dropdown')
+  const dropdownButton = document.getElementById('dropdown-button')
+  if (dropdown && !dropdown.contains(e.target as Node) && !dropdownButton?.contains(e.target as Node)) {
+    closeDropdown()
   }
-
-  axios.get('http://127.0.0.1:3658/m1/829899-809617-default/api/home')
-      .then(response => {
-        role.value = response.data.role
-      })
-      .catch(error => {
-        console.error('Błąd podczas pobierania roli użytkownika:', error)
-      })
-
-  document.addEventListener('click', (e) => {
-    const dropdown = document.getElementById('user-dropdown')
-    const dropdownButton = document.getElementById('dropdown-button')
-    if (dropdown && !dropdown.contains(e.target as Node) && !dropdownButton?.contains(e.target as Node)) {
-      closeDropdown()
-    }
-  })
 })
 </script>
 
 <template>
   <div class="w-full flex flex-col bg-bg">
-    <header class="w-full py-2.5">
+    <header class="w-full py-2.5" role="">
       <div class="flex items-center justify-between w-full px-6">
         <div><a href="/"><img src="/Logo.png"></a></div>
         <div class="flex-grow mx-5">

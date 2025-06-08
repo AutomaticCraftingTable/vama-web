@@ -1,24 +1,22 @@
 <script setup lang="ts">
-import axios from 'axios'
-import {ref} from "vue"
-const data = ref()
-function f() {
-  const url = 'http://127.0.0.1:3658/m1/829899-809617-default/api/home'
-  axios.get(url).then(response => {
-    console.log('Dane artykułu:', response.data)
-    data.value=response.data.articles[0].tags
-  }).catch(error => {
-    console.error('Błąd podczas pobierania artykułu:', error)
-  })
-}
-f()
+import { defineProps } from 'vue'
+
+const props = defineProps<{
+  tags: string
+}>()
+
+const tagArray = props.tags.split('#').filter(tag => tag.trim() !== '').map(tag => `#${tag.trim()}`)
 </script>
 
 <template>
-  <span
-    class="bg-secondary text-text rounded px-3 py-1 text-xs font-bold"
-    tabindex="0"
-  >
-    {{data}}
-  </span>
+  <div class="flex flex-wrap gap-2 mt-2">
+    <span
+      v-for="(tag, index) in tagArray"
+      :key="index"
+      class="bg-secondary text-text rounded px-3 py-1 text-xs font-bold"
+      tabindex="0"
+    >
+      {{ tag }}
+    </span>
+  </div>
 </template>
