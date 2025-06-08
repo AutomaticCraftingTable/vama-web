@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import axiosInstance from '@/axiosInstance';
 import Header from '@/components/Header.vue';
-import SideBar from '@/components/SideBarHome.vue';
+import SideBar from '@/components/SideBar.vue';
 import Comments from '@/components/Comments.vue';
 import UserInfo from '@/components/UserInfo.vue';
 import Heart from '@/components/Icons/Heart.vue';

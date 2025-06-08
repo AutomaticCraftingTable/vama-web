@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Header from "@/components/Header.vue"
-import SideBar from "@/components/SideBarHome.vue";
+import SideBar from "@/components/SideBar.vue";
 import UserInfo from '@/components/UserInfo.vue';
 import ArticleCard from '@/components/ArticleCard.vue';
 import { onMounted, ref } from "vue";

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import Header from '@/components/Header.vue'
-import SideBar from '@/components/SideBarHome.vue'
+import SideBar from '@/components/SideBar.vue'
 import SubscriberCard from '@/components/SubscriberCard.vue'
 import axiosInstance from '@/axiosInstance'
 import Alert from '@/components/Alert.vue'

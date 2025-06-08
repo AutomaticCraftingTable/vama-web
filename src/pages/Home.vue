@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import Header from '@/components/Header.vue'
 import Article from '@/components/Article.vue'
-import SideBar from '@/components/SideBarHome.vue'
+import SideBar from '@/components/SideBar.vue'
 import axiosInstance from '@/axiosInstance'
 import Alert from '@/components/Alert.vue'
 

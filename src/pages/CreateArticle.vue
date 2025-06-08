@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import Header from '@/components/Header.vue'
 
-import SideBar from '@/components/SideBarHome.vue'
+import SideBar from '@/components/SideBar.vue'
 import axiosInstance from '@/axiosInstance'
 import TitleContentInput from '@/components/TitleContentInput.vue'
 import AddPhotoSection from '@/components/AddPhotoSection.vue'
@@ -24,7 +24,6 @@ const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(nu
 onMounted(() => {
   const url = '/api/home'
   axiosInstance.get(url).then(response => {
-    // Pobieramy tylko potrzebne dane, bez roli
   }).catch(error => {
     console.error('Błąd podczas pobierania danych:', error)
   })
