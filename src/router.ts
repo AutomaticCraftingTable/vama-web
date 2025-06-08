@@ -8,6 +8,9 @@ import LikedArticles from './pages/LikedArticles.vue'
 import Subscribers from './pages/Subscribers.vue'
 import CreateArticle from './pages/CreateArticle.vue'
 import Settings from './pages/Settings.vue'
+import VerifyEmail from './pages/VerifyEmail.vue'
+import VerifyEmailSuccess from './pages/VerifyEmailSuccess.vue'
+import VerifyEmailFailed from './pages/VerifyEmailFailed.vue'
 
 const routes = [
   { path: '/login', component: Login },
@@ -20,6 +23,9 @@ const routes = [
   { path: '/Following', component: Subscribers },
   { path: '/CreateArticle', component: CreateArticle },
   { path: '/Settings', component: Settings },
+  { path: '/verify-email', component: VerifyEmail },
+  { path: '/verify-email-success/:id/:hash', component: VerifyEmailSuccess },
+  { path: '/verify-email-failed', component: VerifyEmailFailed },
 ]
 
 const router = createRouter({

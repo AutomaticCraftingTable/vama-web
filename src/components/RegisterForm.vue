@@ -71,6 +71,37 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary
 const closeAlert = () => {
   alertState.value = null;
 };
+
+const emit = defineEmits(['registration-success'])
+
+const formData = ref({
+  email: '',
+  password: '',
+  password_confirmation: ''
+})
+
+const error = ref('')
+const success = ref(false)
+
+const handleSubmit = async () => {
+  try {
+    const response = await axiosInstance.post('/api/auth/register', formData.value)
+    const { token, user } = response.data
+
+    localStorage.setItem('token', token)
+    localStorage.setItem('user', JSON.stringify(user))
+    localStorage.setItem('userRole', 'user')
+    localStorage.setItem('userEmail', user.email)
+
+    success.value = true
+    error.value = ''
+    
+    emit('registration-success')
+  } catch (err: any) {
+    error.value = err.response?.data?.message || 'Wystąpił błąd podczas rejestracji'
+    success.value = false
+  }
+}
 </script>
 
 <template>
@@ -79,10 +110,10 @@ const closeAlert = () => {
       <h1 :class="isMobile ? 'text-xl font-medium text-text' : 'text-2xl font-semibold text-text m-0 mb-2'">Witamy w VAMA</h1>
       <p class="text-sm text-text-dimmed mb-6">Rozpocznij pisanie swoich historii</p>
 
-      <form @submit.prevent="handleRegister" class="w-full h-3/4 flex flex-col gap-4">
+      <form @submit.prevent="handleSubmit" class="w-full h-3/4 flex flex-col gap-4">
         <input
             type="email"
-            v-model="email"
+            v-model="formData.email"
             placeholder="Email"
             required
             :class="inputClass"
@@ -91,7 +122,7 @@ const closeAlert = () => {
         <div class="relative">
           <input
               :type="showPassword ? 'text' : 'password'"
-              v-model="password"
+              v-model="formData.password"
               placeholder="Hasło"
               required
               :class="inputClass"
