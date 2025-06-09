@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
 import axiosInstance from '@/axiosInstance'
-
-const router = useRouter()
 
 const handleResendVerification = async () => {
   try {
@@ -12,10 +9,6 @@ const handleResendVerification = async () => {
     console.error('Błąd podczas wysyłania linku weryfikacyjnego:', error)
     alert('Wystąpił błąd podczas wysyłania linku weryfikacyjnego')
   }
-}
-
-const handleGoToHome = () => {
-  router.push('/')
 }
 </script>
 <template>

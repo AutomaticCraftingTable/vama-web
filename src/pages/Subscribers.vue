@@ -38,11 +38,23 @@ const isLoading = ref(false);
 onMounted(async () => {
   try {
     isLoading.value = true;
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji');
+    }
+
+
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
     const url = '/api/home/subscriptions';
     const response = await axiosInstance.get<ApiResponse>(url);
     subscribers.value = response.data.subscriptions;
   } catch (error) {
-    console.error('Błąd podczas pobierania danych:', error);
+    console.error('Błąd podczas pobierania subskrybentów:', error);
+    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
+      window.location.href = '/login';
+      return;
+    }
     alert.value = { message: 'Wystąpił błąd podczas pobierania subskrybentów', type: 'error' };
   } finally {
     isLoading.value = false;
@@ -51,12 +63,30 @@ onMounted(async () => {
 
 const handleRemoveSubscriber = async (subscriberId: number) => {
   try {
-    await axiosInstance.delete(`/api/profile/${subscriberId}/subscribe`);
-    subscribers.value = subscribers.value.filter((subscriber) => subscriber.author.account_id !== subscriberId);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji');
+    }
+
+    const subscriber = subscribers.value.find(sub => sub.author.account_id === subscriberId);
+    if (!subscriber) {
+      throw new Error('Nie znaleziono subskrybenta');
+    }
+    await axiosInstance.delete(`/api/profile/${subscriber.author.nickname}/subscribe`);
+    subscribers.value = subscribers.value.filter((sub) => sub.author.account_id !== subscriberId);
     alert.value = { message: 'Usunięto subskrybenta', type: 'success' };
   } catch (error) {
     console.error('Błąd podczas usuwania subskrybenta:', error);
-    alert.value = { message: 'Wystąpił błąd podczas usuwania subskrybenta', type: 'error' };
+    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
+      window.location.href = '/login';
+      return;
+    }
+    alert.value = { 
+      message: error instanceof Error && error.message === 'Nie znaleziono subskrybenta' 
+        ? 'Nie znaleziono subskrybenta' 
+        : 'Wystąpił błąd podczas usuwania subskrybenta', 
+      type: 'error' 
+    };
   }
 };
 </script>

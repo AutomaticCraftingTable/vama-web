@@ -18,7 +18,7 @@ const props = defineProps<{
     <div class="flex flex-col p-5 w-full">
       <h1 class="text-2xl font-bold">{{ article?.title }}</h1>
       <div class=" flex items-center mt-4">
-        <img :src="article?.author.logo ?? ''" alt="Author Logo" class="w-10 h-10 rounded-full object-cover" />
+        <img :src="article?.author.logo || '/Avatar.png'" alt="Author Logo" class="w-10 h-10 rounded-full object-cover" />
         <div class="ml-2">
           <p class="text-lg font-semibold">{{ article?.author.nickname }}</p>
           <p class="text-gray-500">{{ article?.author.followers }} obserwujących</p>

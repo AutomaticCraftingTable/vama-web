@@ -1,17 +1,58 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import axiosInstance from '@/axiosInstance'
+import Alert from '@/components/Alert.vue'
 
 const email = ref(localStorage.getItem('userEmail') || '')
+const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+
+onMounted(() => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
+  }
+})
 
 const handleResendVerification = async () => {
   try {
-    await axiosInstance.post('/api/email/verification-notification')
-    alert('Link weryfikacyjny został wysłany ponownie')
-  } catch (error) {
-    console.error('Błąd podczas wysyłania linku weryfikacyjnego:', error)
-    alert('Wystąpił błąd podczas wysyłania linku weryfikacyjnego')
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alertState.value = { 
+        message: 'Nie znaleziono tokenu autoryzacji. Zaloguj się ponownie.', 
+        type: 'error' 
+      }
+      return
+    }
+
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    const response = await axiosInstance.post('/api/email/verification-notification')
+    
+    if (response.status === 200) {
+      alertState.value = { 
+        message: 'Link weryfikacyjny został wysłany ponownie. Sprawdź swoją skrzynkę email.', 
+        type: 'success' 
+      }
+    }
+  } catch (error: any) {
+    let errorMessage = 'Wystąpił błąd podczas wysyłania linku weryfikacyjnego'
+    
+    if (error.response?.status === 401) {
+      errorMessage = 'Sesja wygasła. Zaloguj się ponownie.'
+      localStorage.removeItem('token')
+      delete axiosInstance.defaults.headers.common['Authorization']
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message
+    }
+    
+    alertState.value = { 
+      message: errorMessage, 
+      type: 'error' 
+    }
   }
+}
+
+const closeAlert = () => {
+  alertState.value = null
 }
 </script>
 
@@ -33,4 +74,11 @@ const handleResendVerification = async () => {
       </button>
     </div>
   </div>
+  <Alert 
+    v-if="alertState"
+    :message="alertState.message"
+    :type="alertState.type"
+    :duration="3000"
+    @close="closeAlert"
+  />
 </template>

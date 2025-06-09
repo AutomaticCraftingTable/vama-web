@@ -4,6 +4,7 @@ import Eye from './Icons/Eye.vue'
 import axiosInstance  from '@/axiosInstance';
 import Alert from '@/components/Alert.vue';
 import { AxiosError } from 'axios';
+import { useRouter } from 'vue-router';
 
 const email = ref('')
 const password = ref('')
@@ -12,6 +13,8 @@ const termsAccepted = ref(false)
 const isMobile = ref(false)
 
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+
+const router = useRouter();
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
@@ -53,11 +56,11 @@ const handleRegister = async () => {
     localStorage.setItem('userEmail', email.value);
 
     alertState.value = { message: 'Rejestracja pomyślna!', type: 'success' };
-
-    emit('registration-success');
-
+    
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
   } catch (error) {
-    console.error('Błąd podczas rejestracji:', error);
     let errorMessage = 'Wystąpił błąd podczas rejestracji.';
     
     if (error instanceof AxiosError) {
@@ -105,8 +108,6 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary
 const closeAlert = () => {
   alertState.value = null;
 };
-
-const emit = defineEmits(['registration-success'])
 </script>
 
 <template>

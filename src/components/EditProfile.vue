@@ -10,9 +10,8 @@ const router = useRouter()
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 const isCreateProfileModalOpen = ref(false)
 const profileData = ref<{ nickname: string | null; description: string | null; logo: string | null; email: string | null } | null>(null)
-const currentNickname = ref('')
 const currentDescription = ref('')
-const currentLogo = ref<File | string | null>(null)
+const currentLogo = ref<string | null>(null)
 const oldPassword = ref('')
 const newPassword = ref('')
 const newEmail = ref('')
@@ -25,23 +24,49 @@ const closeAlert = () => {
 
 const fetchProfileData = async () => {
   try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji')
+    }
+
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
     const storedUserData = localStorage.getItem('user')
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData)
-      profileData.value = {
-        nickname: parsedData.profile?.nickname || null,
-        description: parsedData.profile?.description || null,
-        logo: parsedData.profile?.logo || null,
-        email: parsedData.email || null
-      }
       
-      if (profileData.value && profileData.value.nickname) {
-        currentNickname.value = profileData.value.nickname
-        currentDescription.value = profileData.value.description || ''
-        currentLogo.value = profileData.value.logo
+      if (parsedData.profile?.nickname) {
+        try {
+          const response = await axiosInstance.get('/api/profile')
+          if (response.data) {
+            profileData.value = {
+              nickname: response.data.nickname || null,
+              description: response.data.description || null,
+              logo: response.data.logo || null,
+              email: parsedData.email || null
+            }
+            
+            if (profileData.value && profileData.value.nickname) {
+              currentDescription.value = profileData.value.description || ''
+              currentLogo.value = profileData.value.logo
+            }
+          }
+        } catch (error) {
+          console.error('Błąd podczas pobierania danych profilu:', error)
+          profileData.value = null
+          currentDescription.value = ''
+          currentLogo.value = null
+        }
+      } else {
+        profileData.value = null
       }
     }
   } catch (error) {
+    console.error('Błąd podczas pobierania danych profilu:', error)
+    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
+      router.push('/login')
+      return
+    }
     alertState.value = {
       message: 'Wystąpił błąd podczas pobierania danych profilu.',
       type: 'error'
@@ -57,7 +82,6 @@ const handleCreateProfile = () => {
 
 const handleCloseCreateProfileModal = () => {
   isCreateProfileModalOpen.value = false
-  fetchProfileData()
 }
 
 const handleProfileCreated = () => {
@@ -65,31 +89,25 @@ const handleProfileCreated = () => {
     message: 'Profil został pomyślnie utworzony.',
     type: 'success'
   }
-  
+  setTimeout(() => {
+    fetchProfileData()
+  }, 1000)
 }
 
 const handleLogoChange = (event: Event) => {
   const target = event.target as HTMLInputElement
-  if (target.files && target.files.length > 0) {
-    currentLogo.value = target.files[0]
-  }
+  currentLogo.value = target.value
 }
 
 const handleUpdateProfile = async () => {
-  if (!currentNickname.value.trim()) {
-    alertState.value = { message: 'Nazwa użytkownika jest wymagana.', type: 'error' }
-    return
-  }
-
   const formData = new FormData()
-  formData.append('nickname', currentNickname.value)
   formData.append('description', currentDescription.value)
-  if (currentLogo.value instanceof File) {
+  if (currentLogo.value) {
     formData.append('logo', currentLogo.value)
   }
 
   try {
-    await axiosInstance.patch('/api/profile', formData, {
+    await axiosInstance.put('/api/profile', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })
     alertState.value = { message: 'Profil zaktualizowany pomyślnie!', type: 'success' }
@@ -106,7 +124,7 @@ const handleChangePassword = async () => {
   }
 
   try {
-    await axiosInstance.post('/api/auth/change-password', {
+    await axiosInstance.patch('/api/account', {
       old_password: oldPassword.value,
       new_password: newPassword.value
     })
@@ -214,20 +232,25 @@ const handleDeleteAccount = async () => {
           <div class="relative w-24 h-24 rounded-full overflow-hidden border border-secondary">
             <img v-if="profileData.logo" :src="profileData.logo" alt="Profile Logo" class="w-full h-full object-cover" />
             <div v-else class="w-full h-full bg-secondary flex items-center justify-center text-text-dimmed">Brak logo</div>
-            <label for="logo-upload" class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 text-white cursor-pointer opacity-0 hover:opacity-100 transition-opacity rounded-full">
-              <span class="text-sm">Zmień logo</span>
-              <input type="file" id="logo-upload" @change="handleLogoChange" accept="image/*" class="hidden" />
-            </label>
           </div>
+        </div>
+
+        <div class="mb-6">
+          <label for="logo-url" class="block text-text text-sm font-bold mb-2">URL zdjęcia:</label>
+          <input
+            type="url"
+            id="logo-url"
+            v-model="currentLogo"
+            placeholder="Wklej URL zdjęcia"
+            class="shadow appearance-none border rounded w-full py-3 px-4 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"
+          />
         </div>
 
         <h2 class="text-xl font-semibold text-text mb-4">Nick</h2>
         <div class="mb-6">
-          <input
-            type="text"
-            v-model="currentNickname"
-            class="shadow appearance-none border rounded w-full py-3 px-4 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"
-          />
+          <div class="shadow appearance-none border rounded py-3 px-4 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary opacity-50">
+            {{profileData.nickname}}
+          </div>
         </div>
 
         <h2 class="text-xl font-semibold text-text mb-4">Opis</h2>

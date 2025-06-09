@@ -20,7 +20,7 @@ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const theme = ref(prefersDark ? 'dark' : 'light')
 const isSmallScreen = ref(window.innerWidth < 768)
 const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
-const userLogo = ref<string | null>(null)
+const userLogo = ref<string>('/Avatar.png')
 
 window.addEventListener('resize', () => {
   isSmallScreen.value = window.innerWidth < 768
@@ -94,13 +94,15 @@ onMounted(() => {
     const storedUserData = localStorage.getItem('user')
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData)
-      userLogo.value = parsedData.profile?.logo || null
+      if (parsedData.profile && parsedData.profile.state === 'hasProfile') {
+        userLogo.value = parsedData.profile.logo || '/Avatar.png'
+      } else {
+        userLogo.value = '/Avatar.png'
+      }
     }
   } catch (error) {
-    alertState.value = {
-      message: 'Nie udało się załadować logo użytkownika',
-      type: 'error'
-    }
+    console.error('Błąd podczas ładowania logo:', error)
+    userLogo.value = '/Avatar.png'
   }
 
   document.addEventListener('click', (e) => {
@@ -143,7 +145,12 @@ onMounted(() => {
           </button>
           <div class="flex flex-row items-center" v-if="role !== 'guest'">
             <div>
-              <a href="/profile"><img :src="userLogo || '/Avatar.png'" class="w-10 h-10 rounded-full object-cover"/></a>
+              <a href="/profile">
+                <img 
+                  :src="userLogo" 
+                  class="w-10 h-10 rounded-full object-cover"
+                />
+              </a>
             </div>
             <div>
               <button @click="toggleDropdown" id="dropdown-button"

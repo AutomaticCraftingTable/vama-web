@@ -12,11 +12,27 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+
+const props = defineProps<{
+  tags: string
+}>();
+
+const emit = defineEmits<{
+  (e: 'update:tags', value: string): void
+}>();
 
 const currentInputTag = ref('');
-
 const collectedTags = ref<string[]>([]);
+
+watch(() => props.tags, (newTags) => {
+  if (newTags) {
+    collectedTags.value = newTags.split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag !== '')
+      .map(tag => tag.startsWith('#') ? tag : '#' + tag);
+  }
+}, { immediate: true });
 
 const handleAddTag = () => {
   const tag = currentInputTag.value.trim();
@@ -28,8 +44,12 @@ const handleAddTag = () => {
 
   if (!collectedTags.value.includes(formattedTag)) {
     collectedTags.value.push(formattedTag);
+    emit('update:tags', collectedTags.value.map(tag => tag.replace('#', '')).join(','));
   }
 
   currentInputTag.value = '';
 };
+watch(collectedTags, (newTags) => {
+  emit('update:tags', newTags.map(tag => tag.replace('#', '')).join(','));
+}, { deep: true });
 </script>

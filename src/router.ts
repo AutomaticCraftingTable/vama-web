@@ -7,6 +7,7 @@ import ArticleDetail from './pages/ArticleDetail.vue'
 import LikedArticles from './pages/LikedArticles.vue'
 import Subscribers from './pages/Subscribers.vue'
 import CreateArticle from './pages/CreateArticle.vue'
+import EditArticle from './pages/EditArticle.vue'
 import Settings from './pages/Settings.vue'
 import VerifyEmail from './pages/VerifyEmail.vue'
 import VerifyEmailSuccess from './pages/VerifyEmailSuccess.vue'
@@ -19,6 +20,7 @@ const routes = [
   { path: '/Profile', component: Profile },
   { path: '/Profile/:id', component: Profile, props: true},
   { path: '/article-detail/:id', component: ArticleDetail },
+  { path: '/edit-article/:id', component: EditArticle },
   { path: '/LikedArticles', component: LikedArticles },
   { path: '/Following', component: Subscribers },
   { path: '/CreateArticle', component: CreateArticle },

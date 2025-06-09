@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, ref, watch, computed } from 'vue';
+import { defineProps, ref, watch, computed, onMounted } from 'vue';
 import Flag from './Icons/Flag.vue';
 import Options from './Icons/Options.vue';
 import { useRouter, useRoute } from "vue-router";
@@ -17,7 +17,8 @@ const props = defineProps<{
   },
   isCurrentUser: boolean,
   showBio?: boolean,
-  role: string
+  role: string,
+  hideActions?: boolean
 }>()
 
 const route = useRoute();
@@ -50,12 +51,21 @@ const handleReport = async () => {
   }
 
   try {
-    await axiosInstance.post(`/api/profile/${props.user.nickname}/report`);
+    const response = await axiosInstance.post(`/api/profile/${props.user.nickname}/report`, {
+      content: 'Naruszenie zasad społeczności'
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
     showMenu.value = false;
     alert.value = { message: 'Profil został zgłoszony', type: 'success' };
-  } catch (error) {
-    console.error('Błąd podczas zgłaszania profilu:', error);
-    alert.value = { message: 'Wystąpił błąd podczas zgłaszania profilu', type: 'error' };
+  } catch (error: any) {
+    console.error('Błąd podczas zgłaszania profilu:', error.response?.data || error);
+    alert.value = { 
+      message: error.response?.data?.message || 'Wystąpił błąd podczas zgłaszania profilu', 
+      type: 'error' 
+    };
   }
 }
 
@@ -69,9 +79,32 @@ const handleProfileClick = () => {
 const isSubscribed = ref(false);
 const followers = ref(0);
 
+
+const checkSubscriptionStatus = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    if (isOwnProfile.value) {
+      isSubscribed.value = false;
+      return;
+    }
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const response = await axiosInstance.get('/api/home/subscriptions');
+    const subscriptions = response.data.subscriptions || [];
+    isSubscribed.value = subscriptions.some((sub: any) => sub.author.nickname === props.user.nickname);
+  } catch (error) {
+    console.error('Błąd podczas sprawdzania statusu subskrypcji:', error);
+    isSubscribed.value = false;
+  }
+};
+
 watch(() => props.user, (newUser) => {
   if (newUser) {
     followers.value = newUser.followers;
+    if (props.role !== 'guest' && !isOwnProfile.value) {
+      checkSubscriptionStatus();
+    }
   }
 }, { immediate: true });
 
@@ -93,23 +126,57 @@ const toggleSubscription = async () => {
     return;
   }
 
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert.value = { 
+      message: 'Brak tokenu autoryzacji. Zaloguj się ponownie.', 
+      type: 'error' 
+    };
+    return;
+  }
+
   try {
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
     if (isSubscribed.value) {
       await axiosInstance.delete(`/api/profile/${props.user.nickname}/subscribe`);
-      followers.value -= 1;
+      followers.value = Math.max(0, followers.value - 1);
+      props.user.followers = followers.value;
       isSubscribed.value = false;
       alert.value = { message: 'Odsubskrybowano profil', type: 'success' };
     } else {
-      await axiosInstance.post(`/api/profile/${props.user.nickname}/subscribe`);
-      followers.value += 1;
-      isSubscribed.value = true;
-      alert.value = { message: 'Subskrybowano profil', type: 'success' };
+      const response = await axiosInstance.post(`/api/profile/${props.user.nickname}/subscribe`);
+      if (response.data) {
+        followers.value += 1;
+        props.user.followers = followers.value;
+        isSubscribed.value = true;
+        alert.value = { message: 'Subskrybowano profil', type: 'success' };
+      }
     }
   } catch (error) {
     console.error('Błąd podczas subskrybowania/odsubskrybowania:', error);
-    alert.value = { message: 'Wystąpił błąd podczas zmiany statusu subskrypcji', type: 'error' };
+    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
+      window.location.href = '/login';
+      return;
+    }
+    alert.value = { 
+      message: 'Wystąpił błąd podczas zmiany statusu subskrypcji. Spróbuj ponownie później.', 
+      type: 'error' 
+    };
   }
 };
+
+onMounted(() => {
+  if (props.role !== 'guest' && !isOwnProfile.value) {
+    checkSubscriptionStatus();
+  }
+});
+
+watch(() => props.user, () => {
+  if (props.role !== 'guest' && !isOwnProfile.value) {
+    checkSubscriptionStatus();
+  }
+});
 </script>
 
 <template>
@@ -118,7 +185,7 @@ const toggleSubscription = async () => {
       :class="{'cursor-pointer': route.path !== '/profile' && route.path !== `/profile/${props.user.nickname}`}" 
       @click.prevent="handleProfileClick"
     >
-      <img :src="user.logo" class="w-24 h-24 rounded-full object-cover bg-white border-2 border-primary" />
+      <img :src="user.logo || '/Avatar.png'" class="w-24 h-24 rounded-full object-cover bg-white border-2 border-primary" />
     </div>
     <div class="flex flex-col gap-1 flex-1">
       <div class="flex items-center gap-2">
@@ -131,13 +198,13 @@ const toggleSubscription = async () => {
         </div>
         <div class="md:flex-1"></div>
         <button 
-          v-if="!isOwnProfile" 
+          v-if="!isOwnProfile && !hideActions" 
           @click="toggleSubscription" 
           class="px-4 py-2 rounded-sm transition-colors bg-secondary text-nowrap text-text"
         >
           {{ isSubscribed ? 'Odsubskrybuj' : 'Subskrybuj' }}
         </button>
-        <div v-if="!isOwnProfile" class="relative">
+        <div v-if="!isOwnProfile && !hideActions" class="relative">
           <button class="ml-2 px-2 py-1 rounded bg-secondary text-text" @click="handleMenu">
             <Options />
           </button>
@@ -152,7 +219,7 @@ const toggleSubscription = async () => {
           </div>
         </div>
       </div>
-      <p class="text-text-secondary text-sm">{{ followers }} obserwujących</p>
+      <p class="text-text-secondary text-sm">{{ user.followers }} obserwujących</p>
       <p v-if="showBio" class="text-text text-base leading-tight">{{ user.bio }}</p>
       <a :href="user.link" class="text-links underline text-sm mt-1" target="_blank">{{ user.link }}</a>
     </div>

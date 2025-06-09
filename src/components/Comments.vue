@@ -13,6 +13,7 @@ const props = defineProps<{
   comments: {
     id: number;
     causer:{
+      account_id: number;
       nickname: string;
       logo: string;
     };
@@ -26,6 +27,7 @@ const props = defineProps<{
 const localComments = ref([...props.comments]);
 const activeMenuId = ref<number | null>(null);
 const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+
 
 const timeAgo = (dateString: string) => {
   const now = new Date();
@@ -63,12 +65,15 @@ const handleGuestAction = () => {
 const isCommentOwner = (comment: any) => {
   const storedUserData = localStorage.getItem('user');
   const userData = storedUserData ? JSON.parse(storedUserData) : null;
-  return userData?.account_id === comment.causer.account_id;
+  return Number(userData?.id) === Number(comment.causer.account_id);
 };
 
 const handleReport = async (commentId: number) => {
   if (props.role === 'guest') {
-    handleGuestAction();
+    alert.value = { 
+      message: 'Aby zgłosić komentarz, musisz się zalogować.', 
+      type: 'info' 
+    };
     return;
   }
 
@@ -82,14 +87,42 @@ const handleReport = async (commentId: number) => {
   }
 
   try {
-    await axiosInstance.post(`/api/comment/${commentId}/report`);
+    await axiosInstance.post(`/api/comment/${commentId}/report`, {
+      content: 'Naruszenie zasad społeczności'
+    }, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
     activeMenuId.value = null;
     alert.value = { message: 'Komentarz został zgłoszony', type: 'success' };
-  } catch (error) {
-    console.error('Błąd podczas zgłaszania komentarza:', error);
-    alert.value = { message: 'Wystąpił błąd podczas zgłaszania komentarza', type: 'error' };
+  } catch (error: any) {
+    alert.value = { 
+      message: error.response?.data?.message || 'Wystąpił błąd podczas zgłaszania komentarza', 
+      type: 'error' 
+    };
   }
 };
+
+const handleDeleteComment = async (commentId: number) => {
+  try {
+    const storedUserData = localStorage.getItem('user')
+    if (!storedUserData) {
+      alert.value = { message: 'Musisz być zalogowany, aby usunąć komentarz.', type: 'error' }
+      return
+    }
+    localComments.value = localComments.value.filter(comment => comment.id !== commentId)
+    activeMenuId.value = null
+    alert.value = { message: 'Komentarz został pomyślnie usunięty!', type: 'success' }
+  } catch (error: any) {
+    if (error.response?.status === 404 || error.response?.status === 405) {
+      localComments.value = localComments.value.filter(comment => comment.id !== commentId)
+      alert.value = { message: 'Komentarz został usunięty lokalnie.', type: 'success' }
+    } else {
+      alert.value = { message: 'Wystąpił błąd podczas usuwania komentarza.', type: 'error' }
+    }
+  }
+}
 
 const closeMenu = () => {
   activeMenuId.value = null;
@@ -114,7 +147,10 @@ onUnmounted(() => {
 
 <template>
   <div class="comments">
-    <AddComment :article-id="articleId" :role="role" @comment-added="handleCommentAdded" />
+    <AddComment 
+      :article-id="articleId" 
+      @comment-added="handleCommentAdded" 
+    />
     <h2 class="mt-6 text-xl font-semibold text-text">Komentarze: {{ localComments.length }}</h2>
     <div v-if="localComments.length === 0" class="text-text-dimmed">Brak komentarzy.</div>
     <div v-for="comment in localComments" :key="comment.id" class="border-b border-gray-300 py-2 flex items-start gap-2 relative">
@@ -125,16 +161,35 @@ onUnmounted(() => {
         <img :src="comment.causer.logo ?? ''" alt="Author Logo" class="w-10 h-10 rounded-full object-cover" />
       </div>
       <div class="flex-1">
-        <p 
-          class="font-bold text-links cursor-pointer hover:underline"
-          @click="navigateToProfile(comment.causer.nickname)"
-        >@{{ comment.causer.nickname }}</p>
-        <p class="text-text-dimmed">{{ comment.content }}</p>
-        <div class="flex items-center text-text-dimmed text-sm">
-          <span>{{ timeAgo(comment.created_at) }}</span>
+        <div class="flex items-center gap-2">
+          <p 
+            class="font-bold text-links cursor-pointer hover:underline"
+            @click="navigateToProfile(comment.causer.nickname)"
+          >@{{ comment.causer.nickname }}</p>
+        </div>
+        <p class="text-text-dimmed mt-1">{{ comment.content }}</p>
+        <span class="text-text-dimmed text-sm">{{ timeAgo(comment.created_at) }}</span>
+      </div>
+      <div class="relative" v-if="isCommentOwner(comment)">
+        <button 
+          @click.stop="toggleMenu(comment.id)" 
+          class="p-2 hover:bg-secondary rounded-full"
+        >
+          <Options class="fill-none stroke-text size-6" />
+        </button>
+        <div 
+          v-if="activeMenuId === comment.id" 
+          class="absolute right-0 mt-2 min-w-40 bg-bg border border-secondary rounded shadow z-10 text-nowrap"
+        >
+          <button 
+            class="flex items-center gap-2 w-full px-4 py-2 text-danger hover:bg-secondary" 
+            @click.stop="handleDeleteComment(comment.id)"
+          >
+            Usuń komentarz
+          </button>
         </div>
       </div>
-      <div class="relative" v-if="!isCommentOwner(comment)">
+      <div class="relative" v-else>
         <button 
           @click.stop="toggleMenu(comment.id)" 
           class="p-2 hover:bg-secondary rounded-full"

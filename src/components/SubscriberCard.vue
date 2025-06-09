@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue';
 import { useRouter } from 'vue-router';
-import UserIcon from './Icons/UserIcon.vue';
 import RemoveIcon from './Icons/RemoveIcon.vue';
 
 const props = defineProps<{
@@ -23,7 +22,7 @@ const handleRemove = (event: MouseEvent) => {
 };
 
 const handleClick = () => {
-  router.push(`/profile/${props.subscriber.account_id}`);
+  router.push(`/profile/${props.subscriber.nickname}`);
 };
 </script>
 
@@ -39,7 +38,12 @@ const handleClick = () => {
         :alt="subscriber.nickname" 
         class="w-full h-full object-cover" 
       />
-      <UserIcon v-else class="w-10 h-10 text-text-dimmed" />
+      <img 
+        v-else 
+        src="/Avatar.png" 
+        :alt="subscriber.nickname" 
+        class="w-full h-full object-cover" 
+      />
     </div>
     <div class="flex-grow">
       <h3 class="text-lg font-semibold text-text">{{ subscriber.nickname }}</h3>

@@ -32,21 +32,25 @@ const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } |
 onMounted(async () => {
   try {
     const { data } = await axiosNewInstance.get(`/api/article/${route.params.id}`);
+    
     if (!data) {
       throw new Error('Nie znaleziono artykułu');
     }
 
     article.value = data;
-    comments.value = data.comments || [];
+    comments.value = (data.comments || []).sort((a: { created_at: string }, b: { created_at: string }) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
     currentUser.value = data.profile;
     
     const storedUserData = localStorage.getItem('user');
     const userData = storedUserData ? JSON.parse(storedUserData) : null;
-    isCurrentUser.value = userData?.account_id === data.author?.account_id;
+    isCurrentUser.value = Number(userData?.id) === Number(data.author?.account_id);
     
-    isLiked.value = data.isLiked || false;
+    const userLiked = data.likes?.some((like: any) => Number(like.causer) === Number(userData?.id));
+    isLiked.value = userLiked || false;
+
   } catch (error) {
-    console.error('Błąd podczas pobierania danych:', error);
     alertState.value = { 
       message: 'Wystąpił błąd podczas ładowania artykułu. Spróbuj odświeżyć stronę.', 
       type: 'error' 
@@ -57,64 +61,107 @@ onMounted(async () => {
   }
 });
 
-const addComment = async (content: string) => {
-  try {
-    const res = await axiosNewInstance.post(`/api/article/${article.value.id}/comment`, { content });
-    const newComment = {
-      id: res.data.id,
-      causer: currentUser.value.name,
-      content,
-      logo: '',
-      created_at: new Date().toISOString(),
-    };
-    comments.value.unshift(newComment);
-    alertState.value = { message: 'Komentarz został dodany.', type: 'success' };
-  } catch (error) {
-    console.error('Błąd podczas dodawania komentarza:', error);
-    alertState.value = { message: 'Wystąpił błąd podczas dodawania komentarza.', type: 'error' };
-  }
-};
-
 const likeArticle = async () => {
-  if (role.value === 'guest') {
+  const storedUserData = localStorage.getItem('user');
+  const userData = storedUserData ? JSON.parse(storedUserData) : null;
+
+  console.group('Operacja polubienia artykułu');
+  console.log('Stan początkowy:', {
+    isLiked: isLiked.value,
+    userRole: userData?.role || 'guest',
+    hasProfile: !!userData?.profile?.nickname,
+    isCurrentUser: isCurrentUser.value,
+    userId: Number(userData?.id),
+    authorId: Number(article.value?.author?.account_id)
+  });
+
+  if (!userData || userData.role === 'guest') {
+    console.log('Odmowa dostępu - użytkownik gość');
     alertState.value = { 
       message: 'Aby polubić artykuł, musisz się zalogować.', 
       type: 'info' 
     };
+    console.groupEnd();
     return;
   }
 
-  const storedUserData = localStorage.getItem('user')
-  if (!storedUserData || !JSON.parse(storedUserData).profile?.nickname) {
+  if (!userData.profile?.nickname) {
+    console.log('Odmowa dostępu - brak profilu użytkownika');
     alertState.value = { 
       message: 'Aby polubić artykuł, musisz utworzyć profil.', 
       type: 'info' 
     };
+    console.groupEnd();
     return;
   }
 
-  if (!article.value?.id) return;
+  if (!article.value?.id) {
+    console.log('Błąd - brak ID artykułu');
+    alertState.value = { 
+      message: 'Nie można znaleźć artykułu.', 
+      type: 'error' 
+    };
+    console.groupEnd();
+    return;
+  }
+
+  if (isCurrentUser.value) {
+    console.log('Odmowa dostępu - użytkownik jest właścicielem artykułu');
+    alertState.value = { 
+      message: 'Nie możesz polubić własnego artykułu.', 
+      type: 'info' 
+    };
+    console.groupEnd();
+    return;
+  }
 
   try {
     if (isLiked.value) {
-      const response = await axiosNewInstance.delete(`/api/article/${article.value.id}/like`);
-      if (response.status === 200) {
-        article.value.likes = (article.value.likes || 0) - 1;
-        isLiked.value = false;
-        alertState.value = { message: 'Usunięto polubienie.', type: 'success' };
+      console.log('Usuwanie polubienia...');
+      await axiosNewInstance.delete(`/api/article/${article.value.id}/like`);
+      
+      isLiked.value = false;
+      if (article.value) {
+        article.value.likes = article.value.likes.filter((like: any) => Number(like.causer) !== Number(userData.id));
       }
+      console.log('Polubienie usunięte. Nowa liczba polubień:', article.value?.likes?.length);
+      alertState.value = { message: 'Usunięto polubienie artykułu', type: 'success' };
     } else {
+      console.log('Dodawanie polubienia...');
       const response = await axiosNewInstance.post(`/api/article/${article.value.id}/like`);
-      if (response.status === 200) {
-        article.value.likes = (article.value.likes || 0) + 1;
-        isLiked.value = true;
-        alertState.value = { message: 'Artykuł polubiony!', type: 'success' };
+      
+      isLiked.value = true;
+      if (article.value) {
+        article.value.likes = article.value.likes || [];
+        article.value.likes.push({
+          id: response.data.id,
+          causer: Number(userData.id),
+          article_id: article.value.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
       }
+      console.log('Polubienie dodane. Nowa liczba polubień:', article.value?.likes?.length);
+      alertState.value = { message: 'Artykuł został polubiony!', type: 'success' };
     }
-  } catch (error) {
-    console.error('Błąd podczas polubienia/usunięcia polubienia:', error);
-    alertState.value = { message: 'Wystąpił błąd podczas zmiany statusu polubienia.', type: 'error' };
+  } catch (error: any) {
+    console.error('Błąd podczas operacji polubienia:', {
+      status: error.response?.status,
+      message: error.message,
+      data: error.response?.data
+    });
+    
+    if (error.response?.status === 409) {
+      isLiked.value = true;
+      alertState.value = { message: 'Już polubiłeś ten artykuł!', type: 'info' };
+    } else {
+      alertState.value = { 
+        message: `Wystąpił błąd podczas ${isLiked.value ? 'usuwania' : 'dodawania'} polubienia artykułu`, 
+        type: 'error' 
+      };
+    }
   }
+  console.groupEnd();
 };
 
 const closeAlert = () => {
@@ -128,18 +175,30 @@ const closeAlert = () => {
     <SideBar v-if="role !== 'guest'" />
     <div class="flex-1 p-5">
       <div v-if="article">
-        <UserInfo :user="article.author" :isCurrentUser="isCurrentUser" :showBio="false" :role="role" />
+        <UserInfo 
+          :user="article.author" 
+          :isCurrentUser="isCurrentUser" 
+          :showBio="false" 
+          :role="role"
+          :hideActions="isCurrentUser"
+        />
         <div class="font-semibold text-2xl text-text mb-4">{{ article.title }}</div>
         <div class="text-text mb-4">{{ article.content }}</div>
         <div class="flex items-center gap-2 p-2 rounded-sm text-text-dimmed text-nowrap bg-secondary w-min">
-          <span>Polubień: {{ article.likes || 0 }}</span>
-          <button @click="likeArticle" :class="{isLiked}">
+          <span>Polubień: {{ article.likes?.length || 0 }}</span>
+          <button 
+            v-if="!isCurrentUser"
+            @click="likeArticle" 
+            :class="{isLiked}"
+            :disabled="isCurrentUser"
+            class="disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <div class="flex flex-row gap-2 text-text">
               <Heart :class="isLiked ? 'fill-like' : 'stroke-text fill-none'"/>
             </div>
           </button>
         </div>
-        <Comments :comments="comments" :article-id="article.id" :role="role" class="mt-3"/>
+        <Comments :comments="article.comments" :article-id="article.id" :role="role" class="mt-3"/>
       </div>
       <div v-else class="flex items-center justify-center h-full">
         <p class="text-text-dimmed">Ładowanie artykułu...</p>

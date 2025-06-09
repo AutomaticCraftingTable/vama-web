@@ -41,6 +41,68 @@ const inputClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-secondar
 const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary text-text-primary font-bold rounded' : 'w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-text-primary font-bold border-none rounded-md text-base cursor-pointer mt-2 transition-colors',
 )
 
+const checkUserRole = async (remember_token: string) => {
+  try {
+    const response = await axiosInstance.get('/api/user', {
+      headers: {
+        Authorization: `Bearer ${remember_token}`
+      }
+    });
+
+    if (response.data && response.data.role) {
+      localStorage.setItem('userRole', response.data.role);
+      return response.data.role;
+    }
+    throw new Error('Nie udało się pobrać roli użytkownika');
+  } catch (error) {
+    console.error('Błąd podczas pobierania roli użytkownika:', error);
+    throw error;
+  }
+};
+
+const checkUserProfile = async (token: string) => {
+  try {
+    const response = await axiosInstance.get('/api/profile', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    console.log('Odpowiedź z API profilu:', response.data);
+
+    if (response.data) {
+      const storedUserData = localStorage.getItem('user');
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData);
+        parsedData.profile = {
+          state: response.data.state || 'noProfile',
+          logo: response.data.logo,
+          nickname: response.data.nickname,
+          description: response.data.description
+        };
+        console.log('Zaktualizowane dane użytkownika:', parsedData);
+        localStorage.setItem('user', JSON.stringify(parsedData));
+      }
+      return response.data;
+    }
+    throw new Error('Nie udało się pobrać profilu użytkownika');
+  } catch (error) {
+    console.error('Błąd podczas pobierania profilu użytkownika:', error);
+    const storedUserData = localStorage.getItem('user');
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData);
+      parsedData.profile = {
+        state: 'noProfile',
+        logo: null,
+        nickname: null,
+        description: null
+      };
+      localStorage.setItem('user', JSON.stringify(parsedData));
+    }
+    return null;
+  }
+};
+
 const handleLogin = async () => {
   try {
     const response = await axiosInstance.post('/api/auth/login', {
@@ -48,20 +110,37 @@ const handleLogin = async () => {
       password: password.value,
     });
 
-    if (!response.data || !response.data.token || !response.data.user) {
-      throw new Error('Nieprawidłowa odpowiedź z serwera');
+    console.log('Odpowiedź z API logowania:', response.data);
+
+    if (!response.data) {
+      throw new Error('Brak odpowiedzi z serwera');
     }
 
-    if (typeof response.data.token !== 'string' || response.data.token.length < 10) {
-      throw new Error('Nieprawidłowy token');
+    if (!response.data.token) {
+      throw new Error('Brak tokenu w odpowiedzi');
     }
+
+    if (!response.data.user) {
+      throw new Error('Brak danych użytkownika w odpowiedzi');
+    }
+
+    const userData = {
+      id: response.data.user.id,
+      email: response.data.user.email,
+      role: response.data.user.role
+    };
+
+    console.log('Zapisywane dane użytkownika:', userData);
 
     localStorage.setItem('token', response.data.token);
-    localStorage.setItem('user', JSON.stringify(response.data.user));
-    localStorage.setItem('userRole', "guest");
+    localStorage.setItem('user', JSON.stringify(userData));
     
-
     axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
+
+    await Promise.all([
+      checkUserRole(response.data.token),
+      checkUserProfile(response.data.token)
+    ]);
 
     alertState.value = { message: 'Logowanie pomyślne!', type: 'success' };
     
@@ -69,6 +148,7 @@ const handleLogin = async () => {
       router.push('/');
     }, 1000);
   } catch (error) {
+    console.error('Błąd podczas logowania:', error);
     let errorMessage = 'Wystąpił błąd podczas logowania.';
 
     if (error instanceof AxiosError) {
@@ -84,7 +164,6 @@ const handleLogin = async () => {
     }
 
     alertState.value = { message: errorMessage, type: 'error' };
-
     password.value = '';
   }
 };

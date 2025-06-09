@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import Header from '@/components/Header.vue'
 import axiosInstance from '@/axiosInstance'
 
 const router = useRouter()

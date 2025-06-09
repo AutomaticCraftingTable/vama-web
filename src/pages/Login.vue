@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import Header from '@/components/Header.vue'
 import LoginForm from '@/components/LoginForm.vue'
 
-const role = ref(localStorage.getItem('userRole') || 'guest')
+const role = ref(localStorage.getItem('userRole') || 'Undefined')
 </script>
 
 <template>

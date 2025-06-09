@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { defineProps } from 'vue'
+import { defineProps, withDefaults, computed } from 'vue'
 
-const props = defineProps<{
-  tags: string
-}>()
+const props = withDefaults(defineProps<{
+  tags: string | null
+}>(), {
+  tags: ''
+})
 
-const tagArray = props.tags.split(',').filter(tag => tag.trim() !== '').map(tag => `#${tag.trim()}`)
+const tagArray = computed(() => {
+  if (!props.tags) return []
+  return props.tags.split(',').filter(tag => tag.trim() !== '').map(tag => `#${tag.trim()}`)
+})
 </script>
 
 <template>

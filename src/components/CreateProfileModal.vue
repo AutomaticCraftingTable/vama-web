@@ -12,14 +12,14 @@ const emit = defineEmits<{'close': [], 'profileCreated': []}>()
 
 const nickname = ref('')
 const description = ref('')
-const logoFile = ref<File | null>(null)
+const logoUrl = ref('')
 const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     nickname.value = ''
     description.value = ''
-    logoFile.value = null
+    logoUrl.value = ''
     alert.value = null
   }
 })
@@ -27,7 +27,7 @@ watch(() => props.isOpen, (newVal) => {
 const handleLogoChange = (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files.length > 0) {
-    logoFile.value = target.files[0]
+    logoUrl.value = URL.createObjectURL(target.files[0])
   }
 }
 
@@ -40,27 +40,49 @@ const handleSubmit = async () => {
     return
   }
 
+  const token = localStorage.getItem('token')
+  if (!token) {
+    alert.value = {
+      message: 'Nie jesteś zalogowany. Zaloguj się ponownie.',
+      type: 'error'
+    }
+    emit('close')
+    return
+  }
+
+  const storedUserData = localStorage.getItem('user')
+  if (storedUserData) {
+    const parsedData = JSON.parse(storedUserData)
+    if (parsedData.profile) {
+      alert.value = {
+        message: 'Profil dla tego użytkownika już istnieje. Możesz go edytować w ustawieniach.',
+        type: 'error'
+      }
+      emit('close')
+      return
+    }
+  }
+
   const formData = new FormData()
   formData.append('nickname', nickname.value)
   if (description.value.trim()) {
     formData.append('description', description.value)
   }
-  if (logoFile.value) {
-    formData.append('logo', logoFile.value)
+  if (logoUrl.value.trim()) {
+    formData.append('logo', logoUrl.value)
   }
 
   try {
     const response = await axiosInstance.post('/api/profile', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
       },
     })
     
-    const storedUserData = localStorage.getItem('user')
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData)
       parsedData.profile = {
-        ...parsedData.profile,
         nickname: nickname.value,
         description: description.value,
         logo: response.data.logo || null
@@ -72,12 +94,48 @@ const handleSubmit = async () => {
       message: 'Profil został pomyślnie utworzony!',
       type: 'success'
     }
-    emit('profileCreated')
+
     emit('close')
-  } catch (error) {
-    alert.value = {
-      message: 'Wystąpił błąd podczas tworzenia profilu. Spróbuj ponownie.',
-      type: 'error'
+    setTimeout(() => {
+      emit('profileCreated')
+    }, 500)
+  } catch (error: any) {
+    console.error('Błąd podczas tworzenia profilu:', error);
+    
+    if (error.response?.status === 401) {
+      alert.value = {
+        message: 'Twoja sesja wygasła. Zaloguj się ponownie.',
+        type: 'error'
+      }
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    } else if (error.response?.status === 409) {
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData)
+        parsedData.profile = {
+          ...parsedData.profile,
+          nickname: nickname.value,
+          description: description.value
+        }
+        localStorage.setItem('user', JSON.stringify(parsedData))
+      }
+
+      alert.value = {
+        message: 'Profil dla tego użytkownika już istnieje. Możesz go edytować w ustawieniach.',
+        type: 'error'
+      }
+      emit('close')
+    } else if (error.response?.data?.message) {
+      alert.value = {
+        message: error.response.data.message,
+        type: 'error'
+      }
+    } else {
+      alert.value = {
+        message: 'Wystąpił błąd podczas tworzenia profilu. Spróbuj ponownie.',
+        type: 'error'
+      }
     }
   }
 }
@@ -103,8 +161,14 @@ const handleClose = () => {
           <textarea id="description" v-model="description" rows="3" class="shadow appearance-none border rounded w-full py-2 px-3 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"></textarea>
         </div>
         <div class="mb-6">
-          <label for="logo" class="block text-text text-sm font-bold mb-2">Dodaj Logo (opcjonalnie):</label>
-          <input type="file" id="logo" @change="handleLogoChange" accept="image/*" class="block w-full text-sm text-text file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-text-primary file:font-semibold file:bg-primary hover:file:bg-primary-hover"/>
+          <label for="logo-url" class="block text-text text-sm font-bold mb-2">URL zdjęcia (opcjonalnie):</label>
+          <input 
+            type="url" 
+            id="logo-url" 
+            v-model="logoUrl" 
+            placeholder="Wklej URL zdjęcia"
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"
+          />
         </div>
         <div class="flex justify-end gap-3">
           <button type="button" @click="handleClose" class="bg-gray-300 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-400 transition-colors duration-200">

@@ -18,7 +18,7 @@ const currentStep = ref(1)
 const articleTitle = ref('')
 const articleContent = ref('')
 const articleTags = ref('')
-const articlePhoto = ref<File | null>(null)
+const articlePhoto = ref<string | null>(null)
 
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 
@@ -52,34 +52,42 @@ const handleContinue = () => {
   currentStep.value = 2
 }
 
-const handlePhotoSelected = (file: File | null) => {
-  articlePhoto.value = file;
+const handlePhotoSelected = (url: string | null) => {
+  articlePhoto.value = url;
 };
 
 const handlePublish = async () => {
-  const formData = new FormData();
-  formData.append('title', articleTitle.value);
-  formData.append('content', articleContent.value);
-  formData.append('tags', JSON.stringify(articleTags.value ? articleTags.value.split(',').map(tag => tag.trim()) : []));
-  
-  if (articlePhoto.value) {
-    formData.append('photo', articlePhoto.value);
-  }
-
   try {
-    const response = await axiosInstance.post('/api/article', formData, {
+    const photoUrl = articlePhoto.value?.trim();
+    console.log('Oryginalny URL zdjęcia:', articlePhoto.value);
+    console.log('Przetworzony URL zdjęcia:', photoUrl);
+
+    const articleData = {
+      title: articleTitle.value,
+      content: articleContent.value,
+      tags: articleTags.value || '',
+      thumbnail: photoUrl || null
+    };
+
+    console.log('Wysyłane dane:', articleData);
+
+    const response = await axiosInstance.post('/api/article', articleData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+        'Content-Type': 'application/json'
+      }
     });
-    console.log('Artykuł opublikowany:', response.data);
+    console.log('Odpowiedź z serwera:', response.data);
+
     alertState.value = { message: 'Artykuł został pomyślnie opublikowany!', type: 'success' };
     router.push('/');
-  } catch (error) {
-    console.error('Błąd podczas publikowania artykułu:', error);
-    alertState.value = { message: 'Wystąpił błąd podczas publikowania artykułu.', type: 'error' };
+  } catch (error: any) {
+    console.error('Błąd podczas publikowania:', error.response?.data);
+    alertState.value = { 
+      message: error.response?.data?.message || 'Wystąpił błąd podczas publikowania artykułu', 
+      type: 'error' 
+    };
   }
-};
+}
 
 const handleBack = () => {
   currentStep.value = 1;
@@ -88,10 +96,6 @@ const handleBack = () => {
 const closeAlert = () => {
   alertState.value = null
 }
-
-const updateTitle = (value: string) => { articleTitle.value = value }
-const updateContent = (value: string) => { articleContent.value = value }
-const updateTags = (value: string) => { articleTags.value = value }
 
 </script>
 
@@ -120,7 +124,10 @@ const updateTags = (value: string) => { articleTags.value = value }
               Wstecz
             </button>
           </div>
-          <AddPhotoSection @photo-selected="handlePhotoSelected" />
+          <AddPhotoSection 
+            :initial-photo-url="null"
+            @photo-selected="handlePhotoSelected" 
+          />
           <AddTagsSection 
             v-model:tags="articleTags"
           />

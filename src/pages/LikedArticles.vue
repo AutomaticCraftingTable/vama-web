@@ -14,25 +14,45 @@ interface LikedArticle {
 
 const articles = ref<LikedArticle[]>([]);
 const role = ref(localStorage.getItem('userRole') || 'guest');
-const alert = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
 onMounted(async () => {
   try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji');
+    }
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     const url = '/api/home/liked';
     const response = await axiosInstance.get(url);
     articles.value = response.data.articles;
   } catch (error) {
-    console.error('Błąd podczas pobierania danych:', error);
+    console.error('Błąd podczas pobierania polubionych artykułów:', error);
+    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
+      window.location.href = '/login';
+      return;
+    }
+    alert.value = { 
+      message: 'Wystąpił błąd podczas pobierania polubionych artykułów', 
+      type: 'error' 
+    };
   }
 });
 
 const handleRemoveLiked = async (articleId: number) => {
   try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji');
+    }
     await axiosInstance.delete(`/api/article/${articleId}/like`);
     articles.value = articles.value.filter((article: LikedArticle) => article.id !== articleId);
     alert.value = { message: 'Usunięto z polubionych', type: 'success' };
   } catch (error) {
-    console.error('Błąd podczas usuwania polubienia:', error);
+    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
+      window.location.href = '/login';
+      return;
+    }
     alert.value = { message: 'Wystąpił błąd podczas usuwania polubienia', type: 'error' };
   }
 };
@@ -54,5 +74,11 @@ const handleRemoveLiked = async (articleId: number) => {
       </div>
     </div>
   </div>
-  <Alert v-if="alert" :message="alert.message" :type="alert.type" :duration="3000" @close="alert = null" />
+  <Alert 
+    v-if="alert" 
+    :message="alert.message" 
+    :type="alert.type" 
+    :duration="3000" 
+    @close="alert = null" 
+  />
 </template>
