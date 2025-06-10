@@ -65,69 +65,25 @@ const likeArticle = async () => {
   const storedUserData = localStorage.getItem('user');
   const userData = storedUserData ? JSON.parse(storedUserData) : null;
 
-  console.group('Operacja polubienia artykułu');
-  console.log('Stan początkowy:', {
-    isLiked: isLiked.value,
-    userRole: userData?.role || 'guest',
-    hasProfile: !!userData?.profile?.nickname,
-    isCurrentUser: isCurrentUser.value,
-    userId: Number(userData?.id),
-    authorId: Number(article.value?.author?.account_id)
-  });
-
   if (!userData || userData.role === 'guest') {
-    console.log('Odmowa dostępu - użytkownik gość');
     alertState.value = { 
       message: 'Aby polubić artykuł, musisz się zalogować.', 
       type: 'info' 
     };
-    console.groupEnd();
     return;
   }
 
-  if (!userData.profile?.nickname) {
-    console.log('Odmowa dostępu - brak profilu użytkownika');
-    alertState.value = { 
-      message: 'Aby polubić artykuł, musisz utworzyć profil.', 
-      type: 'info' 
-    };
-    console.groupEnd();
-    return;
-  }
-
-  if (!article.value?.id) {
-    console.log('Błąd - brak ID artykułu');
-    alertState.value = { 
-      message: 'Nie można znaleźć artykułu.', 
-      type: 'error' 
-    };
-    console.groupEnd();
-    return;
-  }
-
-  if (isCurrentUser.value) {
-    console.log('Odmowa dostępu - użytkownik jest właścicielem artykułu');
-    alertState.value = { 
-      message: 'Nie możesz polubić własnego artykułu.', 
-      type: 'info' 
-    };
-    console.groupEnd();
-    return;
-  }
 
   try {
     if (isLiked.value) {
-      console.log('Usuwanie polubienia...');
       await axiosNewInstance.delete(`/api/article/${article.value.id}/like`);
       
       isLiked.value = false;
       if (article.value) {
         article.value.likes = article.value.likes.filter((like: any) => Number(like.causer) !== Number(userData.id));
       }
-      console.log('Polubienie usunięte. Nowa liczba polubień:', article.value?.likes?.length);
       alertState.value = { message: 'Usunięto polubienie artykułu', type: 'success' };
     } else {
-      console.log('Dodawanie polubienia...');
       const response = await axiosNewInstance.post(`/api/article/${article.value.id}/like`);
       
       isLiked.value = true;
@@ -141,15 +97,9 @@ const likeArticle = async () => {
           updated_at: new Date().toISOString()
         });
       }
-      console.log('Polubienie dodane. Nowa liczba polubień:', article.value?.likes?.length);
       alertState.value = { message: 'Artykuł został polubiony!', type: 'success' };
     }
   } catch (error: any) {
-    console.error('Błąd podczas operacji polubienia:', {
-      status: error.response?.status,
-      message: error.message,
-      data: error.response?.data
-    });
     
     if (error.response?.status === 409) {
       isLiked.value = true;

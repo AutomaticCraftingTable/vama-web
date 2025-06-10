@@ -16,6 +16,8 @@ const props = defineProps<{
 const isMobile = ref(window.innerWidth < 768);
 const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
+const getCurrentRole = () => localStorage.getItem('userRole') || 'guest';
+
 const handleResize = () => {
   isMobile.value = window.innerWidth < 768;
 };
@@ -28,7 +30,7 @@ const handleGuestAction = () => {
 };
 
 const handleNavigation = (path: string) => {
-  if (props.role === 'guest') {
+  if (getCurrentRole() === 'guest') {
     handleGuestAction();
     return;
   }
@@ -48,7 +50,7 @@ const isActive = (path: string) => route.path === path;
 </script>
 
 <template>
-  <div v-if="!isMobile" class="flex flex-col gap-4 p-5 min-h-full rounded-sm border border-secondary w-64">
+  <div v-if="!isMobile && getCurrentRole() !== 'guest'" class="flex flex-col gap-4 p-5 min-h-full rounded-sm border border-secondary w-64">
     <button 
       @click="handleNavigation('/Following')" 
       :class="[
@@ -80,7 +82,7 @@ const isActive = (path: string) => route.path === path;
       <span>Polubione</span>
     </button>
   </div>
-  <div v-else class="fixed bottom-0 left-0 w-full bg-bg border-t border-secondary z-50">
+  <div v-else-if="getCurrentRole() !== 'guest'" class="fixed bottom-0 left-0 w-full bg-bg border-t border-secondary z-50">
     <div class="flex justify-around items-center py-2">
       <button @click="handleNavigation('/Following')" class="p-2 rounded-full">
         <Group :class="isActive('/Following') ? 'fill-current text-text' : 'fill-none stroke-text'" class="w-8 h-8" />
@@ -89,7 +91,7 @@ const isActive = (path: string) => route.path === path;
         <Add :class="isActive('/CreateArticle') ? 'fill-none stroke-text stroke-[3]' : 'fill-none stroke-text stroke-[1.5]'" class="w-8 h-8" />
       </button>
       <button @click="handleNavigation('/LikedArticles')" class="p-2 rounded-full">
-        <Heart :class="isActive('/LikedArticles') ? 'fill-text stroke-text' : 'stroke-text fill-none'" class="w-8 h-8"/>
+        <Heart :class="[isActive('/LikedArticles') ? 'fill-text stroke-text' : 'stroke-text fill-none']" class="w-8 h-8"/>
       </button>
     </div>
   </div>

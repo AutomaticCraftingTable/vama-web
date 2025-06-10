@@ -14,7 +14,9 @@ const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(nu
 onMounted(() => {
   const url = '/api/home'
   axiosInstance.get(url).then(response => {
-    articles.value = response.data.articles
+    articles.value = response.data.articles.sort((a: any, b: any) => {
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
   }).catch(error => {
     alertState.value = { message: 'Wystąpił błąd podczas ładowania artykułów.', type: 'error' }
   })

@@ -198,17 +198,17 @@ watch(() => props.user, () => {
         </div>
         <div class="md:flex-1"></div>
         <button 
-          v-if="!isOwnProfile && !hideActions" 
+          v-if="!isOwnProfile && !hideActions && !isCurrentUser" 
           @click="toggleSubscription" 
           class="px-4 py-2 rounded-sm transition-colors bg-secondary text-nowrap text-text"
         >
           {{ isSubscribed ? 'Odsubskrybuj' : 'Subskrybuj' }}
         </button>
-        <div v-if="!isOwnProfile && !hideActions" class="relative">
+        <div v-if="!isOwnProfile && !hideActions && !isCurrentUser" class="relative">
           <button class="ml-2 px-2 py-1 rounded bg-secondary text-text" @click="handleMenu">
             <Options />
           </button>
-          <div v-if="showMenu" class="absolute right-0 mt-2 w-40 bg-bg border border-secondary rounded shadow z-10">
+          <div v-if="showMenu" class=" mt-2 w-40 bg-bg border border-secondary rounded shadow z-10">
             <button 
               class="flex items-center gap-2 w-full px-4 py-2 text-text hover:bg-secondary" 
               @click="handleReport"

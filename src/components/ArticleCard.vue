@@ -50,22 +50,24 @@ const handleDelete = () => {
 </script>
 
 <template>
-  <div 
-    class="bg-bg rounded-md p-5 w-[360px] cursor-pointer hover:bg-secondary transition-colors"
-    @click="handleClick"
-  >
-    <div class="relative">
-      <p class="text-text font-bold text-lg mb-3 text-left block">{{ article.title }}</p>
-      <div v-if="isCurrentUser" class="absolute top-0 right-0 flex gap-2">
+  <div class="bg-bg rounded-md p-5 w-[360px]">
+    <div class="flex justify-between items-start">
+      <p 
+        class="text-text font-bold text-lg mb-3 text-left block cursor-pointer hover:text-primary transition-colors"
+        @click="handleClick"
+      >
+        {{ article.title }}
+      </p>
+      <div v-if="isCurrentUser" class="flex gap-2">
         <button
           class="p-1 rounded hover:bg-bg transition-colors"
-          @click.stop="handleEdit"
+          @click="handleEdit"
         >
           <Edit class="w-6 h-6 text-text-secondary" />
         </button>
         <button 
           class="p-1 rounded hover:bg-bg transition-colors"
-          @click.stop="handleDelete"
+          @click="handleDelete"
         >
           <RemoveIcon class="w-6 h-6 text-text-secondary" />
         </button>

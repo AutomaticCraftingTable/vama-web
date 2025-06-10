@@ -27,7 +27,6 @@ onMounted(async () => {
     const response = await axiosInstance.get(url);
     articles.value = response.data.articles;
   } catch (error) {
-    console.error('Błąd podczas pobierania polubionych artykułów:', error);
     if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
       window.location.href = '/login';
       return;

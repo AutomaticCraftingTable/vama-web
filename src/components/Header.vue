@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted} from 'vue'
+import {ref, onMounted, watch} from 'vue'
 import Sun from './Icons/Sun.vue'
 import Moon from './Icons/Moon.vue'
 import Lens from './Icons/Lens.vue'
@@ -10,12 +10,13 @@ import { useRouter } from 'vue-router'
 import Alert from './Alert.vue'
 
 const props = defineProps<{
-  role?: string
+  role: string
+  searchQuery?: string
 }>()
 
 const router = useRouter()
 const isDropdownOpen = ref(false)
-const searchQuery = ref('')
+const searchQuery = ref(props.searchQuery || '')
 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const theme = ref(prefersDark ? 'dark' : 'light')
 const isSmallScreen = ref(window.innerWidth < 768)
@@ -25,7 +26,7 @@ const userLogo = ref<string>('/Avatar.png')
 window.addEventListener('resize', () => {
   isSmallScreen.value = window.innerWidth < 768
 })
-
+const getCurrentRole = () => localStorage.getItem('userRole') || 'guest'
 const setTheme = (newTheme: string) => {
   theme.value = newTheme
   document.documentElement.setAttribute('data-theme', newTheme)
@@ -73,14 +74,32 @@ const handleSearch = async () => {
     alertState.value = { message: 'Wprowadź frazę do wyszukania.', type: 'info' }
     return
   }
+  router.push({
+    path: '/search-results',
+    query: { q: searchQuery.value }
+  })
+}
+
+const handleLogoError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  console.warn('Błąd ładowania logo:', img.src)
+  img.src = '/Avatar.png'
+}
+
+const updateUserLogo = () => {
   try {
-    await axiosInstance.post('/api/home/search', { query: searchQuery.value })
-    router.push({
-      path: '/search-results',
-      query: { q: searchQuery.value }
-    })
+    const storedUserData = localStorage.getItem('user')
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData)
+      if (parsedData.profile?.logo) {
+        userLogo.value = parsedData.profile.logo
+      } else {
+        userLogo.value = '/Avatar.png'
+      }
+    }
   } catch (error) {
-    alertState.value = { message: 'Wystąpił błąd podczas wyszukiwania. Spróbuj ponownie.', type: 'error' }
+    console.error('Błąd podczas aktualizacji logo:', error)
+    userLogo.value = '/Avatar.png'
   }
 }
 
@@ -90,20 +109,13 @@ onMounted(() => {
     setTheme(saved)
   }
 
-  try {
-    const storedUserData = localStorage.getItem('user')
-    if (storedUserData) {
-      const parsedData = JSON.parse(storedUserData)
-      if (parsedData.profile && parsedData.profile.state === 'hasProfile') {
-        userLogo.value = parsedData.profile.logo || '/Avatar.png'
-      } else {
-        userLogo.value = '/Avatar.png'
-      }
+  updateUserLogo()
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'user') {
+      updateUserLogo()
     }
-  } catch (error) {
-    console.error('Błąd podczas ładowania logo:', error)
-    userLogo.value = '/Avatar.png'
-  }
+  })
 
   document.addEventListener('click', (e) => {
     const dropdown = document.getElementById('user-dropdown')
@@ -119,7 +131,7 @@ onMounted(() => {
   <div class="max-w-screen flex flex-col bg-bg">
     <header class="w-full py-2.5">
       <div class="flex items-center justify-between w-full px-6">
-        <div><a href="/"><img src="/Logo.png"></a></div>
+        <div><a href="/"><img src="/Logo.png" alt="Logo"></a></div>
         <div class="flex-grow mx-5">
           <div v-if="!isSmallScreen" class="flex items-center bg-secondary rounded-sm py-2 text-text-dimmed">
             <span class="mr-2 px-3.5">
@@ -143,12 +155,16 @@ onMounted(() => {
               <Sun/>
             </span>
           </button>
-          <div class="flex flex-row items-center" v-if="role !== 'guest'">
+          <div class="flex flex-row items-center" v-if="getCurrentRole() !== 'guest'">
             <div>
               <a href="/profile">
                 <img 
                   :src="userLogo" 
+                  @error="handleLogoError"
                   class="w-10 h-10 rounded-full object-cover"
+                  alt="Logo użytkownika"
+                  crossorigin="anonymous"
+                  referrerpolicy="no-referrer"
                 />
               </a>
             </div>
@@ -183,10 +199,10 @@ onMounted(() => {
             </div>
             <router-view/>
           </div>
-          <div class="flex flex-row items-center gap-2.5" v-if="role === 'guest' && !isSmallScreen">
+          <div class="flex flex-row items-center gap-2.5" v-if="getCurrentRole() === 'guest' && !isSmallScreen">
             <AuthButtons/>
           </div>
-          <div v-if="role === 'guest' && isSmallScreen">
+          <div v-if="getCurrentRole() === 'guest' && isSmallScreen">
             <div>
               <button @click="toggleDropdown" id="dropdown-button"
                       class="p-2 hover:bg-secondary text-text cursor-pointer">
@@ -199,7 +215,7 @@ onMounted(() => {
                   <button @click="toggleTheme" class="relative">
                     <div class="w-12 h-6 bg-secondary rounded-full">
                       <div
-                          :class="['absolute w-6 h-6 bg-primary rounded-full transition-transform', theme === 'dark' ? 'translate-x-6' : '']">
+                          :class="['w-6 h-6 bg-primary rounded-full transition-transform', theme === 'dark' ? 'translate-x-6' : '']">
                       </div>
                     </div>
                   </button>

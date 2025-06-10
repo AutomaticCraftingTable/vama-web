@@ -12,13 +12,14 @@ import Settings from './pages/Settings.vue'
 import VerifyEmail from './pages/VerifyEmail.vue'
 import VerifyEmailSuccess from './pages/VerifyEmailSuccess.vue'
 import VerifyEmailFailed from './pages/VerifyEmailFailed.vue'
+import SearchResults from './pages/SearchResults.vue'
 
 const routes = [
   { path: '/login', component: Login },
   { path: '/registration', component: Registration },
   { path: '/', component: Home },
   { path: '/Profile', component: Profile },
-  { path: '/Profile/:id', component: Profile, props: true},
+  { path: '/Profile/:id', component: Profile },
   { path: '/article-detail/:id', component: ArticleDetail },
   { path: '/edit-article/:id', component: EditArticle },
   { path: '/LikedArticles', component: LikedArticles },
@@ -28,6 +29,7 @@ const routes = [
   { path: '/verify-email', component: VerifyEmail },
   { path: '/verify-email-success/:id/:hash', component: VerifyEmailSuccess },
   { path: '/verify-email-failed', component: VerifyEmailFailed },
+  { path: '/search-results', component: SearchResults },
 ]
 
 const router = createRouter({

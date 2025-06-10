@@ -7,74 +7,98 @@ import CreateProfileModal from './CreateProfileModal.vue'
 import Eye from './Icons/Eye.vue'
 
 const router = useRouter()
-const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
+const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 const isCreateProfileModalOpen = ref(false)
 const profileData = ref<{ nickname: string | null; description: string | null; logo: string | null; email: string | null } | null>(null)
 const currentDescription = ref('')
 const currentLogo = ref<string | null>(null)
 const oldPassword = ref('')
 const newPassword = ref('')
+const confirmPassword = ref('')
 const newEmail = ref('')
 const showOldPassword = ref(false)
 const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+const isLoading = ref(true)
 
 const closeAlert = () => {
   alertState.value = null
 }
 
-const fetchProfileData = async () => {
-  try {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      throw new Error('Brak tokenu autoryzacji')
-    }
-
-    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
-
-    const storedUserData = localStorage.getItem('user')
-    if (storedUserData) {
+const initializeData = () => {
+  const storedUserData = localStorage.getItem('user')
+  if (storedUserData) {
+    try {
       const parsedData = JSON.parse(storedUserData)
-      
-      if (parsedData.profile?.nickname) {
-        try {
-          const response = await axiosInstance.get('/api/profile')
-          if (response.data) {
-            profileData.value = {
-              nickname: response.data.nickname || null,
-              description: response.data.description || null,
-              logo: response.data.logo || null,
-              email: parsedData.email || null
-            }
-            
-            if (profileData.value && profileData.value.nickname) {
-              currentDescription.value = profileData.value.description || ''
-              currentLogo.value = profileData.value.logo
-            }
-          }
-        } catch (error) {
-          console.error('Błąd podczas pobierania danych profilu:', error)
-          profileData.value = null
-          currentDescription.value = ''
-          currentLogo.value = null
-        }
-      } else {
-        profileData.value = null
+      profileData.value = {
+        nickname: parsedData.profile?.nickname || null,
+        description: parsedData.profile?.description || null,
+        logo: parsedData.profile?.logo || null,
+        email: parsedData.email || null
       }
-    }
-  } catch (error) {
-    console.error('Błąd podczas pobierania danych profilu:', error)
-    if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
-      router.push('/login')
-      return
-    }
-    alertState.value = {
-      message: 'Wystąpił błąd podczas pobierania danych profilu.',
-      type: 'error'
+      currentDescription.value = profileData.value.description || ''
+      currentLogo.value = profileData.value.logo || null
+    } catch (error) {
+      console.error('Błąd podczas inicjalizacji danych:', error)
+      profileData.value = null
+      currentDescription.value = ''
+      currentLogo.value = null
     }
   }
 }
 
-onMounted(fetchProfileData)
+onMounted(() => {
+  initializeData()
+  fetchProfileData()
+})
+
+const fetchProfileData = async () => {
+  isLoading.value = true
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/login')
+      return
+    }
+
+    const response = await axiosInstance.get('/api/profile', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    
+    if (response.data?.profile) {
+      profileData.value = {
+        ...response.data.profile,
+        email: profileData.value?.email || null
+      }
+      currentDescription.value = response.data.profile.description || ''
+      currentLogo.value = response.data.profile.logo || null
+      
+      const storedUserData = localStorage.getItem('user')
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData)
+        parsedData.profile = response.data.profile
+        localStorage.setItem('user', JSON.stringify(parsedData))
+      }
+    } else {
+      alertState.value = { 
+        message: 'Nie udało się pobrać danych profilu.', 
+        type: 'error' 
+      }
+    }
+  } catch (error: any) {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      router.push('/login')
+    } else {
+      alertState.value = { 
+        message: 'Wystąpił błąd podczas pobierania danych profilu.', 
+        type: 'error' 
+      }
+    }
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const handleCreateProfile = () => {
   isCreateProfileModalOpen.value = true
@@ -94,45 +118,299 @@ const handleProfileCreated = () => {
   }, 1000)
 }
 
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  console.warn('Błąd ładowania obrazu:', img.src)
+  img.src = '/default-avatar.png'
+}
+
 const handleLogoChange = (event: Event) => {
   const target = event.target as HTMLInputElement
-  currentLogo.value = target.value
+  if (target.value) {
+    try {
+      const url = new URL(target.value)
+      const dozwoloneDomeny = [
+        'i.imgur.com',
+        'res.cloudinary.com',
+        's3.amazonaws.com',
+        'storage.googleapis.com'
+      ]
+
+      if (!dozwoloneDomeny.includes(url.hostname)) {
+        alertState.value = { 
+          message: 'Niedozwolona domena obrazu. Dozwolone domeny: i.imgur.com, res.cloudinary.com, s3.amazonaws.com, storage.googleapis.com', 
+          type: 'error' 
+        }
+        currentLogo.value = ''
+        return
+      }
+
+      if (url.hostname === 'i.imgur.com') {
+        const imgurId = target.value.split('/').pop()?.split('.')[0]
+        if (imgurId) {
+          currentLogo.value = `https://i.imgur.com/${imgurId}.jpeg?${Date.now()}`
+        } else {
+          currentLogo.value = target.value
+        }
+      } else {
+        currentLogo.value = target.value
+      }
+    } catch (error) {
+      alertState.value = { 
+        message: 'Nieprawidłowy URL obrazu.', 
+        type: 'error' 
+      }
+      currentLogo.value = ''
+    }
+  }
 }
 
 const handleUpdateProfile = async () => {
-  const formData = new FormData()
-  formData.append('description', currentDescription.value)
-  if (currentLogo.value) {
-    formData.append('logo', currentLogo.value)
-  }
-
+  let dataToSend: { description?: string; logo?: string } = {}
+  
   try {
-    await axiosInstance.put('/api/profile', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji')
+    }
+
+    const maxDlugoscOpisu = 1000
+    const dozwoloneDomeny = [
+      'i.imgur.com',
+      'res.cloudinary.com',
+      's3.amazonaws.com',
+      'storage.googleapis.com'
+    ]
+
+    const czyCosSieZmienilo = 
+      currentDescription.value !== profileData.value?.description ||
+      currentLogo.value !== profileData.value?.logo
+
+    if (!czyCosSieZmienilo) {
+      alertState.value = { 
+        message: 'Nie wprowadzono żadnych zmian.', 
+        type: 'info' 
+      }
+      return
+    }
+
+    if (currentDescription.value) {
+      if (currentDescription.value.length > maxDlugoscOpisu) {
+        alertState.value = { 
+          message: `Opis nie może przekraczać ${maxDlugoscOpisu} znaków.`, 
+          type: 'error' 
+        }
+        return
+      }
+    }
+
+    if (currentLogo.value) {
+      try {
+        const url = new URL(currentLogo.value)
+        if (!dozwoloneDomeny.includes(url.hostname)) {
+          alertState.value = { 
+            message: 'Niedozwolona domena obrazu. Dozwolone domeny: i.imgur.com, res.cloudinary.com, s3.amazonaws.com, storage.googleapis.com', 
+            type: 'error' 
+          }
+          return
+        }
+
+        const urlRegex = /^https:\/\/(i\.imgur\.com|res\.cloudinary\.com|s3\.amazonaws\.com|storage\.googleapis\.com)\/.*$/
+        if (!urlRegex.test(currentLogo.value)) {
+          alertState.value = { 
+            message: 'Nieprawidłowy format URL obrazu.', 
+            type: 'error' 
+          }
+          return
+        }
+
+        if (url.hostname === 'i.imgur.com') {
+          const imgurId = currentLogo.value.split('/').pop()?.split('.')[0]
+          if (!imgurId) {
+            alertState.value = { 
+              message: 'Nieprawidłowy format URL obrazu z Imgur.', 
+              type: 'error' 
+            }
+            return
+          }
+          dataToSend.logo = `https://i.imgur.com/${imgurId}.jpeg`
+        } else {
+          dataToSend.logo = currentLogo.value
+        }
+
+      } catch (error) {
+        alertState.value = { 
+          message: 'Nieprawidłowy URL obrazu.', 
+          type: 'error' 
+        }
+        return
+      }
+    }
+
+    if (currentDescription.value !== profileData.value?.description) {
+      dataToSend.description = currentDescription.value || ''
+    }
+
+    if (Object.keys(dataToSend).length === 0) {
+      alertState.value = { 
+        message: 'Nie wprowadzono żadnych zmian.', 
+        type: 'info' 
+      }
+      return
+    }
+
+    const response = await axiosInstance.put('/api/profile', dataToSend, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
     })
+
+    const czyDaneZostalyZaktualizowane = 
+      (!dataToSend.description || response.data.profile?.description === currentDescription.value) &&
+      (!dataToSend.logo || response.data.profile?.logo === dataToSend.logo)
+
+    if (!czyDaneZostalyZaktualizowane) {
+      alertState.value = { 
+        message: 'Nie wszystkie dane zostały zaktualizowane. Spróbuj ponownie.', 
+        type: 'error' 
+      }
+      return
+    }
+
+    const storedUserData = localStorage.getItem('user')
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData)
+      parsedData.profile = {
+        ...parsedData.profile,
+        description: response.data.profile?.description,
+        logo: response.data.profile?.logo
+      }
+      localStorage.setItem('user', JSON.stringify(parsedData))
+    }
+
     alertState.value = { message: 'Profil zaktualizowany pomyślnie!', type: 'success' }
     fetchProfileData()
-  } catch (error) {
-    alertState.value = { message: 'Wystąpił błąd podczas aktualizacji profilu. Spróbuj ponownie.', type: 'error' }
+
+  } catch (error: any) {
+    if (error.response) {
+      switch (error.response.status) {
+        case 401:
+          alertState.value = { 
+            message: 'Brak autoryzacji. Zaloguj się ponownie.', 
+            type: 'error' 
+          }
+          localStorage.removeItem('token')
+          router.push('/login')
+          break
+        case 403:
+          alertState.value = { 
+            message: 'Brak uprawnień do aktualizacji profilu.', 
+            type: 'error' 
+          }
+          break
+        case 404:
+          alertState.value = { 
+            message: 'Profil nie istnieje.', 
+            type: 'error' 
+          }
+          break
+        case 422:
+          alertState.value = { 
+            message: error.response.data?.message || 'Nieprawidłowe dane wejściowe.', 
+            type: 'error' 
+          }
+          break
+        default:
+          alertState.value = { 
+            message: 'Wystąpił błąd podczas aktualizacji profilu. Spróbuj ponownie.', 
+            type: 'error' 
+          }
+      }
+    } else {
+      alertState.value = { 
+        message: 'Wystąpił błąd podczas aktualizacji profilu. Spróbuj ponownie.', 
+        type: 'error' 
+      }
+    }
   }
 }
 
 const handleChangePassword = async () => {
-  if (!oldPassword.value || !newPassword.value) {
-    alertState.value = { message: 'Oba pola hasła są wymagane.', type: 'error' }
+  if (!oldPassword.value || !newPassword.value || !confirmPassword.value) {
+    alertState.value = { message: 'Wszystkie pola hasła są wymagane.', type: 'error' }
+    return
+  }
+
+  if (newPassword.value !== confirmPassword.value) {
+    alertState.value = { message: 'Nowe hasła nie są identyczne.', type: 'error' }
+    return
+  }
+
+  const hasUpperCase = /[A-Z]/.test(newPassword.value)
+  const hasLowerCase = /[a-z]/.test(newPassword.value)
+  const hasNumbers = /\d/.test(newPassword.value)
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(newPassword.value)
+  const isLongEnough = newPassword.value.length >= 8
+
+  if (!isLongEnough || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
+    alertState.value = { 
+      message: 'Hasło musi zawierać co najmniej 8 znaków, jedną wielką literę, jedną małą literę, jedną cyfrę i jeden znak specjalny (!@#$%^&*(),.?":{}|<>)', 
+      type: 'error' 
+    }
+    return
+  }
+
+  if (oldPassword.value === newPassword.value) {
+    alertState.value = { message: 'Nowe hasło nie może być takie samo jak stare hasło.', type: 'error' }
     return
   }
 
   try {
-    await axiosInstance.patch('/api/account', {
-      old_password: oldPassword.value,
-      new_password: newPassword.value
+    const token = localStorage.getItem('token')
+    if (!token) {
+      alertState.value = { message: 'Brak tokenu autoryzacji. Zaloguj się ponownie.', type: 'error' }
+      router.push('/login')
+      return
+    }
+
+    const requestData = {
+      current_password: oldPassword.value,
+      new_password: newPassword.value,
+      new_password_confirmation: confirmPassword.value
+    }
+
+    await axiosInstance.patch('/api/account', requestData, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
     })
+
     alertState.value = { message: 'Hasło zmienione pomyślnie!', type: 'success' }
     oldPassword.value = ''
     newPassword.value = ''
-  } catch (error) {
-    alertState.value = { message: 'Wystąpił błąd podczas zmiany hasła. Sprawdź stare hasło.', type: 'error' }
+    confirmPassword.value = ''
+  } catch (error: any) {
+    if (error.response) {
+      if (error.response.status === 422) {
+        const errorMessage = error.response.data?.message || 'Wprowadzone dane są nieprawidłowe. Sprawdź wymagania dotyczące hasła.'
+        alertState.value = { message: errorMessage, type: 'error' }
+      } else if (error.response.status === 401) {
+        alertState.value = { message: 'Brak autoryzacji. Zaloguj się ponownie.', type: 'error' }
+        localStorage.removeItem('token')
+        router.push('/login')
+      } else if (error.response.status === 403) {
+        alertState.value = { message: 'Brak uprawnień do zmiany hasła.', type: 'error' }
+      } else {
+        alertState.value = { 
+          message: `Wystąpił błąd podczas zmiany hasła (${error.response.status}). Spróbuj ponownie.`, 
+          type: 'error' 
+        }
+      }
+    } else {
+      alertState.value = { message: 'Wystąpił błąd podczas zmiany hasła. Brak odpowiedzi serwera.', type: 'error' }
+    }
   }
 }
 
@@ -162,6 +440,10 @@ const toggleOldPasswordVisibility = () => {
 
 const toggleNewPasswordVisibility = () => {
   showNewPassword.value = !showNewPassword.value
+}
+
+const toggleConfirmPasswordVisibility = () => {
+  showConfirmPassword.value = !showConfirmPassword.value
 }
 
 const handleDeleteProfile = async () => {
@@ -230,7 +512,7 @@ const handleDeleteAccount = async () => {
         <h2 class="text-xl font-semibold text-text mb-4">Zdjęcie</h2>
         <div class="flex items-center gap-4 mb-6">
           <div class="relative w-24 h-24 rounded-full overflow-hidden border border-secondary">
-            <img v-if="profileData.logo" :src="profileData.logo" alt="Profile Logo" class="w-full h-full object-cover" />
+            <img v-if="profileData.logo" :src="profileData.logo" alt="Profile Logo" class="w-full h-full object-cover" @error="handleImageError" crossorigin="anonymous" referrerpolicy="no-referrer" />
             <div v-else class="w-full h-full bg-secondary flex items-center justify-center text-text-dimmed">Brak logo</div>
           </div>
         </div>
@@ -313,6 +595,21 @@ const handleDeleteAccount = async () => {
           <button 
             type="button"
             @click="toggleNewPasswordVisibility"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-dimmed hover:text-text"
+          >
+            <Eye class="h-5 w-5" />
+          </button>
+        </div>
+        <div class="mb-6 relative">
+          <input
+            :type="showConfirmPassword ? 'text' : 'password'"
+            v-model="confirmPassword"
+            class="shadow appearance-none border rounded w-full py-3 px-4 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary pr-10"
+            placeholder="Potwierdź nowe hasło"
+          />
+          <button 
+            type="button"
+            @click="toggleConfirmPasswordVisibility"
             class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-dimmed hover:text-text"
           >
             <Eye class="h-5 w-5" />

@@ -60,7 +60,7 @@ onMounted(async () => {
       const { data } = await axiosInstance.get(`/api/profile/${profileId}`);
       profile.value = data;
       articles.value = data.articles;
-      isCurrentUser.value = false;
+      isCurrentUser.value = Number(user.id) === Number(data.account_id);
     }
   } catch (error: any) {
     console.error('Błąd podczas pobierania danych:', error);
