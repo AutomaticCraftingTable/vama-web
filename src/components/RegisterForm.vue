@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import {ref, onMounted, computed} from 'vue'
 import Eye from './Icons/Eye.vue'
+import axiosInstance  from '@/axiosInstance';
+import Alert from '@/components/Alert.vue';
+import { AxiosError } from 'axios';
+import { useRouter } from 'vue-router';
 
 const email = ref('')
 const password = ref('')
@@ -8,16 +12,75 @@ const showPassword = ref(false)
 const termsAccepted = ref(false)
 const isMobile = ref(false)
 
+const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null);
+
+const router = useRouter();
+
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleRegister = () => {
+const handleRegister = async () => {
   if (!termsAccepted.value) {
-    alert('Musisz zaakceptować regulamin przed rejestracją!')
-    return
+    alertState.value = { message: 'Musisz zaakceptować regulamin przed rejestracją!', type: 'error' };
+    return;
   }
-}
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.value)) {
+    alertState.value = { message: 'Podaj poprawny adres email!', type: 'error' };
+    return;
+  }
+
+  if (password.value.length < 8) {
+    alertState.value = { message: 'Hasło musi mieć minimum 8 znaków!', type: 'error' };
+    return;
+  }
+
+  try {
+    const response = await axiosInstance.post('/api/auth/register', {
+      email: email.value,
+      password: password.value,
+      password_confirmation: password.value
+    });
+
+    const userData = {
+      email: email.value,
+      role: 'user',
+      profile: null
+    };
+
+    localStorage.setItem('token', response.data.token);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('userRole', 'user');
+    localStorage.setItem('userEmail', email.value);
+
+    alertState.value = { message: 'Rejestracja pomyślna!', type: 'success' };
+    
+    setTimeout(() => {
+      router.push('/');
+    }, 2000);
+  } catch (error) {
+    let errorMessage = 'Wystąpił błąd podczas rejestracji.';
+    
+    if (error instanceof AxiosError) {
+      if (error.response?.status === 422) {
+        const validationErrors = error.response.data.errors as Record<string, string[]>;
+        if (validationErrors) {
+          const firstErrors = Object.values(validationErrors).map(errors => errors[0]);
+          errorMessage = firstErrors.join(', ');
+        } else if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+    alertState.value = { message: errorMessage, type: 'error' };
+  }
+};
 
 const checkScreenSize = () => {
   isMobile.value = window.innerWidth < 768
@@ -29,32 +92,31 @@ onMounted(() => {
 })
 
 const containerClass = computed(() =>
-    isMobile.value ? 'flex flex-col min-h-screen bg-gray-100' : 'flex justify-center items-center min-h-screen bg-bg p-5',
+    isMobile.value ? 'flex flex-col h-screen bg-bg' : 'flex justify-center items-center h-screen bg-bg p-5',
 )
 
 const cardClass = computed(() =>
     isMobile.value ? 'flex-1 px-4 pt-4' : 'w-full max-w-md bg-background rounded-lg p-8 shadow-xl',
 )
 
-const inputClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-gray-200 rounded text-gray-700 outline-none' : 'w-full py-3.5 px-4 rounded-sm text-text-secondary outline-none transition-colors bg-secondary',
+const inputClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-secondary rounded text-text outline-none' : 'w-full py-3.5 px-4 rounded-sm text-text outline-none transition-colors bg-secondary',
 )
 
-const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-black text-white font-medium rounded' : 'w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-text-primary font-bold border-none rounded-md text-base cursor-pointer mt-2 transition-colors',
+const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-primary text-text-primary font-bold rounded' : 'w-full py-3.5 px-4 bg-primary hover:bg-primary-hover text-text-primary font-bold border-none rounded-md text-base cursor-pointer mt-2 transition-colors',
 )
+
+const closeAlert = () => {
+  alertState.value = null;
+};
 </script>
 
 <template>
   <div :class="containerClass">
-
-
     <div :class="cardClass">
-      <h1 :class="isMobile ? 'text-xl font-medium text-gray-900' : 'text-2xl font-semibold text-text m-0 mb-2'">Witamy w
-        VAMA</h1>
-      <p :class="isMobile ? 'text-sm text-gray-600 mb-6' : 'text-base text-text-secondary m-0 mb-6'">
-        {{ isMobile ? 'Share your history' : 'Rozpocznij pisanie swoich historii' }}
-      </p>
+      <h1 :class="isMobile ? 'text-xl font-medium text-text' : 'text-2xl font-semibold text-text m-0 mb-2'">Witamy w VAMA</h1>
+      <p class="text-sm text-text-dimmed mb-6">Rozpocznij pisanie swoich historii</p>
 
-      <form @submit.prevent="handleRegister" class="w-full flex flex-col gap-4">
+      <form @submit.prevent="handleRegister" class="w-full h-3/4 flex flex-col gap-4">
         <input
             type="email"
             v-model="email"
@@ -79,9 +141,9 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-black t
             <Eye></Eye>
           </button>
         </div>
-        <div class="bg-red-500 size-3.5 h-full"></div>
+        <div class="flex-1"></div>
         <div class="mt-4">
-          <label class="flex items-start text-xs text-gray-500 leading-tight">
+          <label class="flex items-start text-xs text-text-dimmed leading-tight">
             <input type="checkbox" v-model="termsAccepted" required class="mr-2 mt-0.5"/>
             <span class="text-sm text-text-secondary leading-tight">
               Zgadzam się z
@@ -93,10 +155,17 @@ const buttonClass = computed(() => isMobile.value ? 'w-full py-3 px-4 bg-black t
         <button type="submit" :class="buttonClass">
           Zarejestruj się
         </button>
-        <div v-if="isMobile" class="text-center text-sm mt-2">
-          albo <a href="#" class="text-gray-600">zaloguj się</a>
+        <div class="text-center text-sm text-text-dimmed mt-2">
+          albo <a href="/login" class="text-text">zaloguj się</a>
         </div>
       </form>
+        <Alert 
+          v-if="alertState"
+          :message="alertState.message"
+          :type="alertState.type"
+          :duration="5000"
+          @close="closeAlert"
+        />
     </div>
   </div>
 </template>
