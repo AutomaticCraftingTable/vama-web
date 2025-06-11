@@ -3,6 +3,7 @@ import { ref, watch } from 'vue'
 import axiosInstance from '@/axiosInstance'
 import RemoveIcon from './Icons/RemoveIcon.vue'
 import Alert from './Alert.vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps<{ 
   isOpen: boolean 
@@ -14,6 +15,8 @@ const nickname = ref('')
 const description = ref('')
 const logoUrl = ref('')
 const alert = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
+const isSubmitting = ref(false)
+const router = useRouter()
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
@@ -32,111 +35,106 @@ const handleLogoChange = (event: Event) => {
 }
 
 const handleSubmit = async () => {
-  if (!nickname.value.trim()) {
-    alert.value = {
-      message: 'Nazwa użytkownika jest wymagana.',
-      type: 'error'
+  if (isSubmitting.value) return
+  isSubmitting.value = true
+  
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      throw new Error('Brak tokenu autoryzacji')
     }
-    return
-  }
 
-  const token = localStorage.getItem('token')
-  if (!token) {
-    alert.value = {
-      message: 'Nie jesteś zalogowany. Zaloguj się ponownie.',
-      type: 'error'
-    }
-    emit('close')
-    return
-  }
-
-  const storedUserData = localStorage.getItem('user')
-  if (storedUserData) {
-    const parsedData = JSON.parse(storedUserData)
-    if (parsedData.profile) {
+    if (!nickname.value.trim()) {
       alert.value = {
-        message: 'Profil dla tego użytkownika już istnieje. Możesz go edytować w ustawieniach.',
+        message: 'Nazwa użytkownika jest wymagana.',
         type: 'error'
       }
-      emit('close')
       return
     }
-  }
 
-  const formData = new FormData()
-  formData.append('nickname', nickname.value)
-  if (description.value.trim()) {
-    formData.append('description', description.value)
-  }
-  if (logoUrl.value.trim()) {
-    formData.append('logo', logoUrl.value)
-  }
-
-  try {
-    const response = await axiosInstance.post('/api/profile', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
+    const response = await axiosInstance.post('/api/profile', {
+      nickname: nickname.value,
+      description: description.value,
+      logo: logoUrl.value
+    }, {
+      headers: { 
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
-      },
+      }
     })
-    
-    if (storedUserData) {
-      const parsedData = JSON.parse(storedUserData)
-      parsedData.profile = {
-        nickname: nickname.value,
-        description: description.value,
-        logo: response.data.logo || null
-      }
-      localStorage.setItem('user', JSON.stringify(parsedData))
-    }
 
-    alert.value = {
-      message: 'Profil został pomyślnie utworzony!',
-      type: 'success'
-    }
-
-    emit('close')
-    setTimeout(() => {
-      emit('profileCreated')
-    }, 500)
-  } catch (error: any) {
-    console.error('Błąd podczas tworzenia profilu:', error);
-    
-    if (error.response?.status === 401) {
-      alert.value = {
-        message: 'Twoja sesja wygasła. Zaloguj się ponownie.',
-        type: 'error'
-      }
-      localStorage.removeItem('token')
-      localStorage.removeItem('user')
-      window.location.href = '/login'
-    } else if (error.response?.status === 409) {
+    if (response.data?.profile) {
+      const storedUserData = localStorage.getItem('user')
       if (storedUserData) {
         const parsedData = JSON.parse(storedUserData)
         parsedData.profile = {
-          ...parsedData.profile,
-          nickname: nickname.value,
-          description: description.value
+          ...response.data.profile,
+          state: 'hasProfile'
         }
         localStorage.setItem('user', JSON.stringify(parsedData))
       }
 
-      alert.value = {
-        message: 'Profil dla tego użytkownika już istnieje. Możesz go edytować w ustawieniach.',
-        type: 'error'
+      alert.value = { 
+        message: 'Profil utworzony pomyślnie!', 
+        type: 'success' 
       }
+      emit('profileCreated')
       emit('close')
-    } else if (error.response?.data?.message) {
-      alert.value = {
-        message: error.response.data.message,
-        type: 'error'
+    }
+  } catch (error: any) {
+    if (error.response) {
+      switch (error.response.status) {
+        case 409:
+          try {
+            const profileResponse = await axiosInstance.get('/api/profile')
+            if (profileResponse.data?.profile) {
+              const storedUserData = localStorage.getItem('user')
+              if (storedUserData) {
+                const parsedData = JSON.parse(storedUserData)
+                parsedData.profile = {
+                  ...profileResponse.data.profile,
+                  state: 'hasProfile'
+                }
+                localStorage.setItem('user', JSON.stringify(parsedData))
+              }
+              alert.value = { 
+                message: 'Profil już istnieje. Możesz go edytować w ustawieniach.', 
+                type: 'info' 
+              }
+              emit('profileCreated')
+              emit('close')
+            }
+          } catch (profileError) {
+            alert.value = { 
+              message: 'Wystąpił błąd podczas pobierania danych profilu.', 
+              type: 'error' 
+            }
+          }
+          break
+        case 401:
+          localStorage.removeItem('token')
+          router.push('/login')
+          break
+        case 422:
+          alert.value = { 
+            message: error.response.data?.message || 'Nieprawidłowe dane wejściowe.', 
+            type: 'error' 
+          }
+          break
+        default:
+          alert.value = { 
+            message: 'Wystąpił błąd podczas tworzenia profilu. Spróbuj ponownie.', 
+            type: 'error' 
+          }
       }
     } else {
-      alert.value = {
-        message: 'Wystąpił błąd podczas tworzenia profilu. Spróbuj ponownie.',
-        type: 'error'
+      alert.value = { 
+        message: 'Wystąpił błąd podczas tworzenia profilu. Spróbuj ponownie.', 
+        type: 'error' 
       }
     }
+  } finally {
+    isSubmitting.value = false
   }
 }
 

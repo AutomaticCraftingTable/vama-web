@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import {ref, onMounted} from 'vue'
 import Header from '@/components/Header.vue'
 import SideBar from '@/components/SideBar.vue'
 import SubscriberCard from '@/components/SubscriberCard.vue'
@@ -50,12 +50,11 @@ onMounted(async () => {
     const response = await axiosInstance.get<ApiResponse>(url);
     subscribers.value = response.data.subscriptions;
   } catch (error) {
-    console.error('Błąd podczas pobierania subskrybentów:', error);
     if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
       window.location.href = '/login';
       return;
     }
-    alert.value = { message: 'Wystąpił błąd podczas pobierania subskrybentów', type: 'error' };
+    alert.value = {message: 'Wystąpił błąd podczas pobierania subskrybentów', type: 'error'};
   } finally {
     isLoading.value = false;
   }
@@ -74,18 +73,17 @@ const handleRemoveSubscriber = async (subscriberId: number) => {
     }
     await axiosInstance.delete(`/api/profile/${subscriber.author.nickname}/subscribe`);
     subscribers.value = subscribers.value.filter((sub) => sub.author.account_id !== subscriberId);
-    alert.value = { message: 'Usunięto subskrybenta', type: 'success' };
+    alert.value = {message: 'Usunięto subskrybenta', type: 'success'};
   } catch (error) {
-    console.error('Błąd podczas usuwania subskrybenta:', error);
     if (error instanceof Error && error.message === 'Brak tokenu autoryzacji') {
       window.location.href = '/login';
       return;
     }
-    alert.value = { 
-      message: error instanceof Error && error.message === 'Nie znaleziono subskrybenta' 
-        ? 'Nie znaleziono subskrybenta' 
-        : 'Wystąpił błąd podczas usuwania subskrybenta', 
-      type: 'error' 
+    alert.value = {
+      message: error instanceof Error && error.message === 'Nie znaleziono subskrybenta'
+          ? 'Nie znaleziono subskrybenta'
+          : 'Wystąpił błąd podczas usuwania subskrybenta',
+      type: 'error'
     };
   }
 };
@@ -94,18 +92,18 @@ const handleRemoveSubscriber = async (subscriberId: number) => {
 <template>
   <Header :role="role"></Header>
   <div class="flex h-screen bg-bg">
-    <SideBar v-if="role !== 'guest'" />
+    <SideBar v-if="role !== 'guest'"/>
     <div class="flex flex-col gap-4 mt-4 p-4 flex-grow">
-        <SubscriberCard
+      <SubscriberCard
           v-for="subscriber in subscribers"
           :key="subscriber.id"
           :subscriber="subscriber.author"
           @remove-subscriber="handleRemoveSubscriber"
-        />
-        <div v-if="subscribers.length === 0" class="text-text-dimmed text-center w-full">
-          Brak subskrybentów.
-        </div>
+      />
+      <div v-if="subscribers.length === 0" class="text-text-dimmed text-center w-full">
+        Brak subskrybentów.
+      </div>
     </div>
   </div>
-  <Alert v-if="alert" :message="alert.message" :type="alert.type" :duration="3000" @close="alert = null" />
+  <Alert v-if="alert" :message="alert.message" :type="alert.type" :duration="3000" @close="alert = null"/>
 </template>

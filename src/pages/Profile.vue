@@ -51,7 +51,7 @@ onMounted(async () => {
     const user = JSON.parse(userData);
     const profileId = route.params.id;
 
-    if (!profileId || profileId === user.id.toString()) {
+    if (!profileId) {
       const { data } = await axiosInstance.get('/api/profile');
       profile.value = data;
       articles.value = data.articles;
@@ -60,7 +60,7 @@ onMounted(async () => {
       const { data } = await axiosInstance.get(`/api/profile/${profileId}`);
       profile.value = data;
       articles.value = data.articles;
-      isCurrentUser.value = Number(user.id) === Number(data.account_id);
+      isCurrentUser.value = user.id && data.account_id ? Number(user.id) === Number(data.account_id) : false;
     }
   } catch (error: any) {
     console.error('Błąd podczas pobierania danych:', error);
@@ -93,7 +93,8 @@ const handleDeleteArticle = async (articleId: number) => {
       type: 'error' 
     };
   }
-};
+}
+
 </script>
 <template>
   <Header :role="role" />

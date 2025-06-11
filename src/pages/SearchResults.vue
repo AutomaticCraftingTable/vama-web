@@ -45,7 +45,6 @@ onMounted(async () => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
   } catch (error: any) {
-    console.error('Błąd podczas wyszukiwania:', error)
     if (error.response?.status === 401) {
       alertState.value = { 
         message: 'Sesja wygasła. Zaloguj się ponownie.', 

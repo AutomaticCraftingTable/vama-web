@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {ref, onMounted, watch} from 'vue'
+import {ref, onMounted} from 'vue'
 import Sun from './Icons/Sun.vue'
 import Moon from './Icons/Moon.vue'
 import Lens from './Icons/Lens.vue'
@@ -8,6 +8,8 @@ import AuthButtons from './AuthButtons.vue'
 import axiosInstance from '@/axiosInstance'
 import { useRouter } from 'vue-router'
 import Alert from './Alert.vue'
+
+
 
 const props = defineProps<{
   role: string
@@ -21,7 +23,10 @@ const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
 const theme = ref(prefersDark ? 'dark' : 'light')
 const isSmallScreen = ref(window.innerWidth < 768)
 const alertState = ref<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
-const userLogo = ref<string>('/Avatar.png')
+const isLoggedIn = ref(false)
+const userProfile = ref<{ name: string; email: string; role?: string; profile?: { state: string; description?: string; logo?: string; nickname?: string } } | null>(null)
+const userLogo = ref('/Avatar.png')
+const isProfileMenuOpen = ref(false)
 
 window.addEventListener('resize', () => {
   isSmallScreen.value = window.innerWidth < 768
@@ -50,22 +55,104 @@ const closeAlert = () => {
 }
 
 const handleSettings = async () => {
-  router.push('/settings')
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) {
+      router.push('/login')
+      return
+    }
+    router.push('/settings')
+  } catch (error) {
+    router.push('/login')
+  }
+}
+
+const checkAuthStatus = async () => {
+  try {
+    const token = localStorage.getItem('token')
+    
+    if (!token) {
+      isLoggedIn.value = false
+      userProfile.value = null
+      userLogo.value = '/Avatar.png'
+      return
+    }
+
+    axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+    const savedUser = localStorage.getItem('user')
+    
+    if (savedUser) {
+      try {
+        const userData = JSON.parse(savedUser) as { name: string; email: string; role?: string; profile?: { state: string; description?: string; logo?: string; nickname?: string } }
+        if (userData.profile?.nickname) {
+          userData.profile.state = 'hasProfile'
+        } else {
+          userData.profile = {
+            ...userData.profile,
+            state: 'noProfile'
+          }
+        }
+        
+        isLoggedIn.value = true
+        userProfile.value = userData
+        userLogo.value = userData.profile?.logo || '/Avatar.png'
+      } catch (parseError) {
+        isLoggedIn.value = false
+        userProfile.value = null
+        userLogo.value = '/Avatar.png'
+      }
+    } else {
+      try {
+        const response = await axiosInstance.get('/api/profile')
+        
+        if (response.data?.profile) {
+          const userData: { name: string; email: string; role?: string; profile?: { state: string; description?: string; logo?: string; nickname?: string } } = {
+            name: response.data.name || '',
+            email: response.data.email,
+            role: response.data.role,
+            profile: {
+              ...response.data.profile,
+              state: response.data.profile.nickname ? 'hasProfile' : 'noProfile'
+            }
+          }
+          
+          localStorage.setItem('user', JSON.stringify(userData))
+          isLoggedIn.value = true
+          userProfile.value = userData
+          userLogo.value = userData.profile?.logo || '/Avatar.png'
+        } else {
+          isLoggedIn.value = false
+          userProfile.value = null
+          userLogo.value = '/Avatar.png'
+        }
+      } catch (error) {
+        isLoggedIn.value = false
+        userProfile.value = null
+        userLogo.value = '/Avatar.png'
+      }
+    }
+  } catch (error) {
+    isLoggedIn.value = false
+    userProfile.value = null
+    userLogo.value = '/Avatar.png'
+  }
 }
 
 const handleLogout = async () => {
   try {
     await axiosInstance.post('/api/auth/logout')
+  } catch (error) {
+    console.error('Błąd podczas wylogowywania:', error)
+  } finally {
     localStorage.removeItem('token')
     localStorage.removeItem('user')
     localStorage.removeItem('userRole')
-    delete axiosInstance.defaults.headers.common['Authorization']
+    isLoggedIn.value = false
+    userProfile.value = null
+    userLogo.value = '/Avatar.png'
+
     router.push('/login')
-  } catch (error) {
-    alertState.value = {
-      message: 'Wystąpił błąd podczas wylogowywania.',
-      type: 'error'
-    }
   }
 }
 
@@ -87,30 +174,31 @@ const handleLogoError = (event: Event) => {
 }
 
 const updateUserLogo = () => {
-  try {
-    const storedUserData = localStorage.getItem('user')
-    if (storedUserData) {
-      const parsedData = JSON.parse(storedUserData)
-      if (parsedData.profile?.logo) {
-        userLogo.value = parsedData.profile.logo
-      } else {
-        userLogo.value = '/Avatar.png'
-      }
+  const savedUser = localStorage.getItem('user')
+  if (savedUser) {
+    try {
+      const userData = JSON.parse(savedUser)
+      userLogo.value = userData.profile?.logo || '/Avatar.png'
+    } catch (error) {
+      userLogo.value = '/Avatar.png'
     }
-  } catch (error) {
-    console.error('Błąd podczas aktualizacji logo:', error)
-    userLogo.value = '/Avatar.png'
   }
 }
 
-onMounted(() => {
+const handleProfileClick = () => {
+  if (!isLoggedIn.value) {
+    router.push('/settings')
+    return
+  }
+  isProfileMenuOpen.value = !isProfileMenuOpen.value
+}
+
+onMounted(async () => {
+  await checkAuthStatus()
   const saved = localStorage.getItem('theme')
   if (saved === 'dark' || saved === 'light') {
     setTheme(saved)
   }
-
-  updateUserLogo()
-
   window.addEventListener('storage', (e) => {
     if (e.key === 'user') {
       updateUserLogo()
@@ -124,6 +212,7 @@ onMounted(() => {
       closeDropdown()
     }
   })
+
 })
 </script>
 
@@ -155,11 +244,11 @@ onMounted(() => {
               <Sun/>
             </span>
           </button>
-          <div class="flex flex-row items-center" v-if="getCurrentRole() !== 'guest'">
+          <div class="flex flex-row items-center" v-if="isLoggedIn">
             <div>
               <a href="/profile">
-                <img 
-                  :src="userLogo" 
+                <img
+                  :src="userLogo"
                   @error="handleLogoError"
                   class="w-10 h-10 rounded-full object-cover"
                   alt="Logo użytkownika"
@@ -199,10 +288,10 @@ onMounted(() => {
             </div>
             <router-view/>
           </div>
-          <div class="flex flex-row items-center gap-2.5" v-if="getCurrentRole() === 'guest' && !isSmallScreen">
+          <div class="flex flex-row items-center gap-2.5" v-if="!isLoggedIn && !isSmallScreen">
             <AuthButtons/>
           </div>
-          <div v-if="getCurrentRole() === 'guest' && isSmallScreen">
+          <div v-if="!isLoggedIn && isSmallScreen">
             <div>
               <button @click="toggleDropdown" id="dropdown-button"
                       class="p-2 hover:bg-secondary text-text cursor-pointer">

@@ -47,6 +47,11 @@ const handleDelete = () => {
     emit('delete', props.article.id);
   }
 };
+
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  img.src = '/NoImage.png';
+};
 </script>
 
 <template>
@@ -77,7 +82,10 @@ const handleDelete = () => {
       <img 
         :src="article.thumbnail || '/NoImage.png'" 
         :alt="article.title"
-        class="w-full h-full object-cover" 
+        class="w-full h-full object-cover"
+        @error="handleImageError"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"
       />
     </div>
     <div class="flex flex-row items-center gap-2 mt-2 min-h-[40px] w-full">

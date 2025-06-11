@@ -46,7 +46,6 @@ onMounted(async () => {
     articleTags.value = data.tags;
     articlePhoto.value = data.thumbnail;
   } catch (error) {
-    console.error('Błąd podczas pobierania danych:', error);
     alertState.value = { 
       message: 'Wystąpił błąd podczas ładowania artykułu. Spróbuj odświeżyć stronę.', 
       type: 'error' 

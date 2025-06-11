@@ -20,6 +20,7 @@ const showOldPassword = ref(false)
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
 const isLoading = ref(true)
+const isUpdating = ref(false)
 
 const closeAlert = () => {
   alertState.value = null
@@ -39,7 +40,6 @@ const initializeData = () => {
       currentDescription.value = profileData.value.description || ''
       currentLogo.value = profileData.value.logo || null
     } catch (error) {
-      console.error('Błąd podczas inicjalizacji danych:', error)
       profileData.value = null
       currentDescription.value = ''
       currentLogo.value = null
@@ -53,7 +53,9 @@ onMounted(() => {
 })
 
 const fetchProfileData = async () => {
+  if (isLoading.value) return
   isLoading.value = true
+  
   try {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -89,6 +91,11 @@ const fetchProfileData = async () => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
       router.push('/login')
+    } else if (error.response?.status === 404) {
+      alertState.value = { 
+        message: 'Nie posiadasz jeszcze profilu utwórz go!', 
+        type: 'info' 
+      }
     } else {
       alertState.value = { 
         message: 'Wystąpił błąd podczas pobierania danych profilu.', 
@@ -120,8 +127,7 @@ const handleProfileCreated = () => {
 
 const handleImageError = (event: Event) => {
   const img = event.target as HTMLImageElement
-  console.warn('Błąd ładowania obrazu:', img.src)
-  img.src = '/default-avatar.png'
+  img.src = '/Avatar.png'
 }
 
 const handleLogoChange = (event: Event) => {
@@ -166,6 +172,9 @@ const handleLogoChange = (event: Event) => {
 }
 
 const handleUpdateProfile = async () => {
+  if (isUpdating.value) return
+  isUpdating.value = true
+  
   let dataToSend: { description?: string; logo?: string } = {}
   
   try {
@@ -266,32 +275,21 @@ const handleUpdateProfile = async () => {
       }
     })
 
-    const czyDaneZostalyZaktualizowane = 
-      (!dataToSend.description || response.data.profile?.description === currentDescription.value) &&
-      (!dataToSend.logo || response.data.profile?.logo === dataToSend.logo)
-
-    if (!czyDaneZostalyZaktualizowane) {
-      alertState.value = { 
-        message: 'Nie wszystkie dane zostały zaktualizowane. Spróbuj ponownie.', 
-        type: 'error' 
+    if (response.data?.profile) {
+      const storedUserData = localStorage.getItem('user')
+      if (storedUserData) {
+        const parsedData = JSON.parse(storedUserData)
+        parsedData.profile = {
+          ...parsedData.profile,
+          description: response.data.profile?.description,
+          logo: response.data.profile?.logo
+        }
+        localStorage.setItem('user', JSON.stringify(parsedData))
       }
-      return
+
+      alertState.value = { message: 'Profil zaktualizowany pomyślnie!', type: 'success' }
+      fetchProfileData()
     }
-
-    const storedUserData = localStorage.getItem('user')
-    if (storedUserData) {
-      const parsedData = JSON.parse(storedUserData)
-      parsedData.profile = {
-        ...parsedData.profile,
-        description: response.data.profile?.description,
-        logo: response.data.profile?.logo
-      }
-      localStorage.setItem('user', JSON.stringify(parsedData))
-    }
-
-    alertState.value = { message: 'Profil zaktualizowany pomyślnie!', type: 'success' }
-    fetchProfileData()
-
   } catch (error: any) {
     if (error.response) {
       switch (error.response.status) {
@@ -333,6 +331,8 @@ const handleUpdateProfile = async () => {
         type: 'error' 
       }
     }
+  } finally {
+    isUpdating.value = false
   }
 }
 
@@ -414,26 +414,6 @@ const handleChangePassword = async () => {
   }
 }
 
-const handleChangeEmail = async () => {
-  if (!newEmail.value.trim()) {
-    alertState.value = { message: 'Adres e-mail jest wymagany.', type: 'error' }
-    return
-  }
-
-  const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/
-  if (!emailRegex.test(newEmail.value)) {
-    alertState.value = { message: 'Wprowadź poprawny adres e-mail.', type: 'error' }
-    return
-  }
-
-  try {
-    await axiosInstance.patch('/api/account', { email: newEmail.value })
-    alertState.value = { message: 'Adres e-mail został zmieniony pomyślnie!', type: 'success' }
-  } catch (error) {
-    alertState.value = { message: 'Wystąpił błąd podczas zmiany adresu e-mail. Spróbuj ponownie.', type: 'error' }
-  }
-}
-
 const toggleOldPasswordVisibility = () => {
   showOldPassword.value = !showOldPassword.value
 }
@@ -455,9 +435,14 @@ const handleDeleteProfile = async () => {
 
   try {
     await axiosInstance.delete('/api/profile')
-    localStorage.removeItem('user')
+    const storedUserData = localStorage.getItem('user')
+    if (storedUserData) {
+      const parsedData = JSON.parse(storedUserData)
+      parsedData.profile = null
+      localStorage.setItem('user', JSON.stringify(parsedData))
+    }
+    profileData.value = null
     alertState.value = { message: 'Profil został pomyślnie usunięty.', type: 'success' }
-    router.go(0)
   } catch (error) {
     alertState.value = {
       message: 'Wystąpił błąd podczas usuwania profilu. Spróbuj ponownie.',
@@ -555,19 +540,10 @@ const handleDeleteAccount = async () => {
       <div class="p-6 rounded-lg shadow-xl mb-8 border border-secondary">
         <h2 class="text-xl font-semibold text-text mb-4">Email</h2>
         <div class="mb-6">
-          <input
-            type="email"
-            v-model="newEmail"
-            :placeholder="profileData.email || 'Obecny email'"
-            class="shadow appearance-none border rounded w-full py-3 px-4 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary"
-          />
+          <div class="shadow appearance-none border rounded py-3 px-4 text-text leading-tight focus:outline-none focus:shadow-outline bg-secondary border-secondary opacity-50">
+            {{profileData.email}}
+          </div>
         </div>
-        <button
-          @click="handleChangeEmail"
-          class="bg-primary text-text-primary py-3 px-6 rounded-md hover:bg-primary-hover transition-colors duration-200 font-bold mb-6"
-        >
-          Zmień Email
-        </button>
 
         <h2 class="text-xl font-semibold text-text mb-4">Hasło</h2>
         <div class="mb-4 relative">

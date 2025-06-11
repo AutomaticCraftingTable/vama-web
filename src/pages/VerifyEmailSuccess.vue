@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {ref, onMounted} from 'vue'
+import {useRouter, useRoute} from 'vue-router'
 import axiosInstance from '@/axiosInstance'
 
 const router = useRouter()
@@ -28,11 +28,13 @@ onMounted(async () => {
       <div class="bg-Success rounded-sm p-6">
         <p class="text-text-Success font-bold text-3xl">Weryfikacja zakończona sukcesem!</p>
       </div>
-        <div class="font-bold">Twój adres email został pomyślnie zweryfikowany.<br>Za chwilę zostaniesz przekierowany na stronę główną.</div>
-    <div>
+      <div class="font-bold">Twój adres email został pomyślnie zweryfikowany.<br>Za chwilę zostaniesz przekierowany na
+        stronę główną.
+      </div>
+      <div>
         <div>Możesz teraz korzystać z VAMA</div>
         <div class="font-bold">{{ email }}</div>
-    </div>
+      </div>
     </div>
   </div>
 </template>

@@ -55,8 +55,7 @@ const checkUserRole = async (remember_token: string) => {
     }
     throw new Error('Nie udało się pobrać roli użytkownika');
   } catch (error) {
-    console.error('Błąd podczas pobierania roli użytkownika:', error);
-    throw error;
+    return null;
   }
 };
 
@@ -68,8 +67,6 @@ const checkUserProfile = async (token: string) => {
       }
     });
 
-    console.log('Odpowiedź z API profilu:', response.data);
-
     if (response.data) {
       const storedUserData = localStorage.getItem('user');
       if (storedUserData) {
@@ -80,14 +77,12 @@ const checkUserProfile = async (token: string) => {
           nickname: response.data.nickname,
           description: response.data.description
         };
-        console.log('Zaktualizowane dane użytkownika:', parsedData);
         localStorage.setItem('user', JSON.stringify(parsedData));
       }
       return response.data;
     }
     throw new Error('Nie udało się pobrać profilu użytkownika');
   } catch (error) {
-    console.error('Błąd podczas pobierania profilu użytkownika:', error);
     const storedUserData = localStorage.getItem('user');
     if (storedUserData) {
       const parsedData = JSON.parse(storedUserData);
@@ -110,7 +105,6 @@ const handleLogin = async () => {
       password: password.value,
     });
 
-    console.log('Odpowiedź z API logowania:', response.data);
 
     if (!response.data) {
       throw new Error('Brak odpowiedzi z serwera');
@@ -130,8 +124,6 @@ const handleLogin = async () => {
       role: response.data.user.role
     };
 
-    console.log('Zapisywane dane użytkownika:', userData);
-
     localStorage.setItem('token', response.data.token);
     localStorage.setItem('user', JSON.stringify(userData));
     
@@ -148,7 +140,6 @@ const handleLogin = async () => {
       router.push('/');
     }, 1000);
   } catch (error) {
-    console.error('Błąd podczas logowania:', error);
     let errorMessage = 'Wystąpił błąd podczas logowania.';
 
     if (error instanceof AxiosError) {

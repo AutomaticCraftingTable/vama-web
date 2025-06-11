@@ -73,6 +73,15 @@ const handleProfileClick = () => {
   if (route.path === '/profile' || route.path === `/profile/${props.user.nickname}`) {
     return;
   }
+
+  if (props.role === 'guest') {
+    alert.value = { 
+      message: 'Aby zobaczyć profil użytkownika, musisz się zalogować.', 
+      type: 'info' 
+    };
+    return;
+  }
+
   router.push(`/profile/${props.user.nickname}`);
 }
 

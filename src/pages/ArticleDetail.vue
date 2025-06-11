@@ -73,6 +73,13 @@ const likeArticle = async () => {
     return;
   }
 
+  if (!userData.profile?.nickname) {
+    alertState.value = { 
+      message: 'Aby polubić artykuł, musisz utworzyć profil.', 
+      type: 'info' 
+    };
+    return;
+  }
 
   try {
     if (isLiked.value) {
@@ -100,7 +107,6 @@ const likeArticle = async () => {
       alertState.value = { message: 'Artykuł został polubiony!', type: 'success' };
     }
   } catch (error: any) {
-    
     if (error.response?.status === 409) {
       isLiked.value = true;
       alertState.value = { message: 'Już polubiłeś ten artykuł!', type: 'info' };
@@ -111,7 +117,6 @@ const likeArticle = async () => {
       };
     }
   }
-  console.groupEnd();
 };
 
 const closeAlert = () => {

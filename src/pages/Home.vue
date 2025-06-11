@@ -7,11 +7,15 @@ import axiosInstance from '@/axiosInstance'
 import Alert from '@/components/Alert.vue'
 
 const articles = ref([])
-const role = ref(localStorage.getItem('userRole') || 'guestt')
+const role = ref(localStorage.getItem('userRole') || 'guest')
 
 const alertState = ref<{ message: string; type: 'success' | 'error' } | null>(null)
 
 onMounted(() => {
+  fetchArticles()
+})
+
+const fetchArticles = () => {
   const url = '/api/home'
   axiosInstance.get(url).then(response => {
     articles.value = response.data.articles.sort((a: any, b: any) => {
@@ -26,7 +30,7 @@ onMounted(() => {
     alertState.value = JSON.parse(storedAlert)
     localStorage.removeItem('articleAlert')
   }
-})
+}
 
 const closeAlert = () => {
   alertState.value = null

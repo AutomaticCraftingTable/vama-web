@@ -55,13 +55,6 @@ const toggleMenu = (commentId: number) => {
   activeMenuId.value = activeMenuId.value === commentId ? null : commentId;
 };
 
-const handleGuestAction = () => {
-  alert.value = { 
-    message: 'Aby wykonać tę akcję, musisz się zalogować.', 
-    type: 'info' 
-  };
-};
-
 const isCommentOwner = (comment: any) => {
   const storedUserData = localStorage.getItem('user');
   const userData = storedUserData ? JSON.parse(storedUserData) : null;
@@ -136,6 +129,11 @@ const handleCommentAdded = (newComment: any) => {
   localComments.value.unshift(newComment);
 };
 
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement;
+  img.src = '/Avatar.png';
+};
+
 onMounted(() => {
   document.addEventListener('click', closeMenu);
 });
@@ -158,7 +156,14 @@ onUnmounted(() => {
         class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center cursor-pointer hover:opacity-80"
         @click="navigateToProfile(comment.causer.nickname)"
       >
-        <img :src="comment.causer.logo ?? ''" alt="Author Logo" class="w-10 h-10 rounded-full object-cover" />
+        <img 
+          :src="comment.causer.logo || '/Avatar.png'" 
+          alt="Author Logo" 
+          class="w-10 h-10 rounded-full object-cover"
+          @error="handleImageError"
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"
+        />
       </div>
       <div class="flex-1">
         <div class="flex items-center gap-2">
